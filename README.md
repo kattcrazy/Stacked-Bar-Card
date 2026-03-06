@@ -32,13 +32,15 @@ resources:
 |--------|------|---------|-------------|
 | `title` | string | — | Card title. Empty = hide |
 | `title_position` | `top` \| `bottom` | `top` | Title placement |
+| `title_alignment` | `left` \| `center` \| `right` | `left` | Title horizontal alignment |
 | `show_legend` | boolean | `true` | Show legend with labels |
 | `legend_position` | `top` \| `bottom` | `bottom` | Legend placement |
+| `legend_alignment` | `left` \| `center` \| `right` | `left` | Legend horizontal alignment |
 | `show_state` | `bar` \| `legend` \| `both` \| `none` | `legend` | Where to show entity values |
 | `sort` | `abc` \| `cba` \| `highest` \| `lowest` \| `custom` | `highest` | Segment order (left → right) |
 | `bar_height` | number | `24` | Bar height in pixels |
 | `bar_radius` | number | `4` | Bar segment border-radius (px) |
-| `gradient` | `none` \| `left` \| `right` | `none` | Gradient direction (left = light→right, right = dark→right) |
+| `gradient` | `none` \| `left` \| `right` | `none` | Gradient direction (left = lighter→base, right = darker→base) |
 | `remove_background` | boolean | `false` | Remove card background; bar fills the grid cell |
 | `entities` | array | `[]` | Entity list (see below) |
 | `grid_options` | object | — | Passed through for dashboard layout |

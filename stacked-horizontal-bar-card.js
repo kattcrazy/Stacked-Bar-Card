@@ -140,7 +140,7 @@ class StackedHorizontalBarCard extends LitElement {
 
     const legendEl = showLegend
       ? html`
-          <div class="legend">
+          <div class="legend" style="justify-content:${legendAlign === 'center' ? 'center' : legendAlign === 'right' ? 'flex-end' : 'flex-start'}">
             ${segments.map(
               (seg) => {
                 let swatchBg = seg.color;
@@ -158,9 +158,11 @@ class StackedHorizontalBarCard extends LitElement {
         `
       : nothing;
 
+    const titleAlign = cfg.title_alignment || 'left';
+    const legendAlign = cfg.legend_alignment || 'left';
     const titleEl =
       cfg.title != null && cfg.title !== ''
-        ? html`<div class="card-title">${cfg.title}</div>`
+        ? html`<div class="card-title" style="text-align:${titleAlign}">${cfg.title}</div>`
         : nothing;
 
     const titlePos = cfg.title_position || 'top';
@@ -179,11 +181,13 @@ class StackedHorizontalBarCard extends LitElement {
 
     return html`
       <div class="card-content ${noBg ? 'no-bg' : ''}">
-        ${topBlock ? html`<div class="top">${topBlock}</div>` : nothing}
-        <div class="bar-container" style="${noBg ? 'flex:1;min-height:0;height:100%' : `height:${barHeight}px`}">
-          <div class="bar" style="border-radius:${barRadiusPx}">${barEls}</div>
+        <div class="card-inner">
+          ${topBlock ? html`<div class="top">${topBlock}</div>` : nothing}
+          <div class="bar-container" style="${noBg ? 'flex:1;min-height:0;height:100%' : `height:${barHeight}px`}">
+            <div class="bar" style="border-radius:${barRadiusPx}">${barEls}</div>
+          </div>
+          ${bottomBlock ? html`<div class="bottom">${bottomBlock}</div>` : nothing}
         </div>
-        ${bottomBlock ? html`<div class="bottom">${bottomBlock}</div>` : nothing}
       </div>
     `;
   }
@@ -214,9 +218,17 @@ class StackedHorizontalBarCard extends LitElement {
       display: flex;
       flex-direction: column;
       min-height: 0;
+      justify-content: center;
     }
     .card-content.no-bg {
       padding: 0;
+    }
+    .card-inner {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      justify-content: center;
     }
     .card-content.empty {
       display: flex;
@@ -240,8 +252,7 @@ class StackedHorizontalBarCard extends LitElement {
     }
     .top {
       margin-bottom: 12px;
-      flex: 1;
-      min-height: 0;
+      flex-shrink: 0;
     }
     .bar-container {
       width: 100%;
@@ -255,8 +266,7 @@ class StackedHorizontalBarCard extends LitElement {
     }
     .bottom {
       margin-top: 12px;
-      flex: 1;
-      min-height: 0;
+      flex-shrink: 0;
     }
     .bar {
       display: flex;
@@ -371,9 +381,15 @@ class StackedHorizontalBarCardEditor extends LitElement {
     this._valueChanged('entities', entities);
   }
 
+  _getEntityOptions() {
+    if (!this.hass || !this.hass.states) return [];
+    return Object.keys(this.hass.states).sort();
+  }
+
   render() {
     const c = this._config;
     const entities = c.entities || [];
+    const entityOptions = this._getEntityOptions();
 
     return html`
       <div class="editor">
@@ -400,6 +416,18 @@ class StackedHorizontalBarCardEditor extends LitElement {
               <option value="bottom">Bottom</option>
             </select>
           </div>
+          <div class="option-row">
+            <label class="option-label">Alignment</label>
+            <select
+              class="select"
+              .value=${c.title_alignment ?? 'left'}
+              @change=${(e) => this._valueChanged('title_alignment', e.target.value)}
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
+            </select>
+          </div>
         </div>
 
         <div class="section">
@@ -423,6 +451,18 @@ class StackedHorizontalBarCardEditor extends LitElement {
             >
               <option value="top">Top</option>
               <option value="bottom">Bottom</option>
+            </select>
+          </div>
+          <div class="option-row">
+            <label class="option-label">Alignment</label>
+            <select
+              class="select"
+              .value=${c.legend_alignment ?? 'left'}
+              @change=${(e) => this._valueChanged('legend_alignment', e.target.value)}
+            >
+              <option value="left">Left</option>
+              <option value="center">Center</option>
+              <option value="right">Right</option>
             </select>
           </div>
           <div class="option-row">
@@ -506,15 +546,17 @@ class StackedHorizontalBarCardEditor extends LitElement {
             (ent, i) => html`
               <div class="entity-row">
                 <div class="entity-fields">
-                  <ha-entity-picker
-                    .hass=${this.hass}
+                  <input
+                    type="text"
+                    class="input entity-input"
                     .value=${ent.entity || ''}
-                    allow-custom-entity
-                    @value-changed=${(e) => {
-                      const v = e.detail?.value ?? e.detail?.entity_id ?? '';
-                      this._entityChanged(i, 'entity', v);
-                    }}
-                  ></ha-entity-picker>
+                    list="entity-list-${i}"
+                    placeholder="Entity ID (e.g. sensor.x)"
+                    @input=${(e) => this._entityChanged(i, 'entity', e.target.value)}
+                  />
+                  <datalist id="entity-list-${i}">
+                    ${entityOptions.map((eid) => html`<option value="${eid}">`)}
+                  </datalist>
                   <input
                     type="text"
                     class="input"
@@ -644,10 +686,13 @@ class StackedHorizontalBarCardEditor extends LitElement {
       gap: 8px;
       align-items: center;
     }
-    .entity-fields ha-entity-picker,
-    .entity-fields .input {
+    .entity-fields .input,
+    .entity-fields .entity-input {
       flex: 1;
       min-width: 120px;
+    }
+    .entity-fields .entity-input {
+      min-width: 180px;
     }
     .entity-fields .color-input {
       min-width: 100px;
@@ -702,9 +747,6 @@ class StackedHorizontalBarCardEditor extends LitElement {
     .add-btn:hover {
       background: rgba(var(--rgb-primary-color), 0.1);
       border-color: var(--primary-color);
-    }
-    ha-entity-picker {
-      width: 100%;
     }
   `;
 }
