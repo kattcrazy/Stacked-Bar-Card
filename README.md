@@ -57,7 +57,7 @@ Entities must have numeric `state` values. Proportions are computed from the sum
 
 ### UI config
 
-![Config-1](images/Config-1.png) ![Config-1](images/Config-2.png)
+<p style="max-width: 100vw;"><img src="images/Config-1.png" alt="Config 1" style="max-width: 50%;"> <img src="images/Config-2.png" alt="Config 2" style="max-width: 50%;"></p>
 
 ### Full config with all options
 For your copy-paste convenience!
@@ -91,7 +91,7 @@ entities:
 
 ## Config Examples
 
-![Liquid Ice](images/Liquid-Ice.png) ![Light](images/Light.png) ![Dark](images/Dark.png)
+<p style="max-width: 100vw;"><img src="images/Liquid-ice.png" alt="Liquid Ice" style="max-width: 33.33%;"> <img src="images/Light.png" alt="Light" style="max-width: 33.33%;"> <img src="images/Dark.png" alt="Dark" style="max-width: 33.33%;"></p>
 
 ### 1
 
