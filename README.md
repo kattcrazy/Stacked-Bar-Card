@@ -55,9 +55,8 @@ resources:
 
 Entities must have numeric `state` values. Proportions are computed from the sum of all values.
 
-## Example
-
-Full config with all options :
+### Full config with all options
+For your copy-paste convenience!
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -69,6 +68,7 @@ title_position: top/bottom
 
 show_legend: true/false
 legend_position: top/bottom
+
 show_state: legend/bar/both/none
 
 sort: abc/cba/highest/lowest/custom
@@ -84,6 +84,9 @@ entities:
     order: 1
 
 ```
+
+## Config Examples
+
 
 ## About
 This is my first Home Assistant card that I will be maintaining for public use. I have tested it on my own setup and it works perfectly! Please report an issue if something doesn't work, I'll try my best to fix it.
