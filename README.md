@@ -63,27 +63,27 @@ Full config with all options :
 ```yaml
 type: custom:stacked-horizontal-bar-card
 
-alignment: left              # left | center | right (applies to title and legend)
+alignment: left/center/right
 show_title: true
 title: Energy Usage
-title_position: top          # top | bottom
+title_position: top/bottom
 
 show_legend: true
-legend_position: bottom      # top | bottom
-show_state: legend           # legend | bar | both | none
+legend_position: top/bottom
+show_state: legend/bar/both/none
 
-sort: highest                # abc | cba | highest | lowest | custom
+sort: abc/cba/highest/lowest/custom
 
-bar_height: 24               # number or 'auto' to fill space between title/legend
-# bar_radius: 8              # omit for theme default
-gradient: none               # none | left | right | center | top | bottom
-fill_card: false             # true = no card bg, bar fills grid cell, hides title/legend
+bar_height: 24               # or auto
+bar_radius: 8                # omit for theme default
+gradient: none/left/right/center/top/bottom
+fill_card: true/false
 
 entities:
   - entity: sensor.grid_usage
-    name: Grid               # omit to use friendly_name
+    name: Grid
     color: '#4472C4'
-    order: 1                 # used when sort: custom
+    order: 1
 
 ```
 
