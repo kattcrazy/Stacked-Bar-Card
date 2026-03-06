@@ -30,17 +30,17 @@ resources:
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `alignment` | `left` \| `center` \| `right` | `left` | Horizontal alignment for both title and legend |
+| `alignment` | `left`, `center`, `right` | `left` | Horizontal alignment for both title and legend |
 | `show_title` | boolean | `true` | Show title |
 | `title` | string | — | Card title text |
-| `title_position` | `top` \| `bottom` | `top` | Title placement |
+| `title_position` | `top`, `bottom` | `top` | Title placement |
 | `show_legend` | boolean | `true` | Show legend with labels |
-| `legend_position` | `top` \| `bottom` | `bottom` | Legend placement |
-| `show_state` | `bar` \| `legend` \| `both` \| `none` | `legend` | Where to show entity values |
-| `sort` | `abc` \| `cba` \| `highest` \| `lowest` \| `custom` | `highest` | Segment order (left → right) |
-| `bar_height` | number \| `auto` | `24` | Bar height in px; use `auto` to fill space between title/legend |
+| `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
+| `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
+| `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
+| `bar_height` | number, `auto` | `24` | Bar height in px; use `auto` to fill space between title/legend |
 | `bar_radius` | number | theme | Bar segment border-radius (px); omit for theme default |
-| `gradient` | `none` \| `left` \| `right` \| `center` \| `top` \| `bottom` | `none` | Gradient direction |
+| `gradient` | `none`, `left`, `right`, `center`, `top`, `bottom` | `none` | Gradient direction |
 | `fill_card` | boolean | `false` | Remove card background; bar fills grid cell; hides title/legend |
 | `entities` | array | `[]` | Entity list (see below) |
 | `grid_options` | object | — | Passed through for dashboard layout |
