@@ -38,7 +38,6 @@ resources:
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
-| `bar_height` | number, `auto` | `24` | Bar height in px; use `auto` to fill space between title/legend |
 | `bar_radius` | number | theme | Bar segment border-radius (px); omit for theme default |
 | `gradient` | `none`, `left`, `right`, `center`, `top`, `bottom` | `none` | Gradient direction |
 | `fill_card` | boolean | `false` | Remove card background; bar fills grid cell; hides title/legend |
@@ -64,17 +63,16 @@ Full config with all options :
 type: custom:stacked-horizontal-bar-card
 
 alignment: left/center/right
-show_title: true
+show_title: true/false
 title: Energy Usage
 title_position: top/bottom
 
-show_legend: true
+show_legend: true/false
 legend_position: top/bottom
 show_state: legend/bar/both/none
 
 sort: abc/cba/highest/lowest/custom
 
-bar_height: 24               # or auto
 bar_radius: 8                # omit for theme default
 gradient: none/left/right/center/top/bottom
 fill_card: true/false

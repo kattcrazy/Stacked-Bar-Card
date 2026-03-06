@@ -55,7 +55,6 @@ class StackedHorizontalBarCard extends LitElement {
       show_title: true,
       show_legend: true,
       show_state: 'legend',
-      bar_height: 24,
     };
   }
 
@@ -101,13 +100,11 @@ class StackedHorizontalBarCard extends LitElement {
     const cfg = this._config;
     const segments = this._getSortedSegments();
     const total = segments.reduce((s, seg) => s + seg.value, 0);
-    const barAutofill = cfg.bar_height === 'auto' || cfg.bar_autofill === true;
-    const barHeight = barAutofill ? 24 : (typeof cfg.bar_height === 'number' ? cfg.bar_height : 24);
     const barRadius = cfg.bar_radius != null && cfg.bar_radius !== '' ? cfg.bar_radius : 'var(--ha-card-border-radius, 12px)';
     const showState = cfg.show_state || 'legend';
-    const showOnBar = showState === 'bar' || showState === 'both';
     const showLegend = cfg.show_legend !== false;
-    const showInLegend = showState === 'legend' || showState === 'both';
+    const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
+    const showOnBar = showState === 'bar' || showState === 'both' || (showState === 'legend' && !showLegend);
     const alignment = cfg.alignment ?? cfg.title_alignment ?? cfg.legend_alignment ?? 'left';
     const fillCard = cfg.fill_card === true || cfg.remove_background === true;
 
@@ -159,7 +156,7 @@ class StackedHorizontalBarCard extends LitElement {
                 else if (gradient === 'bottom') swatchBg = `linear-gradient(0deg, ${seg.color}, ${light})`;
                 return html`
                 <div class="legend-item">
-                  <span class="legend-swatch" style="background:${swatchBg}"></span>
+                  <span class="legend-swatch" style="background:${swatchBg};border-radius:${barRadiusPx}"></span>
                   <span class="legend-label">${seg.name}${showInLegend ? `: ${seg.value}` : ''}</span>
                 </div>
               `;
@@ -186,10 +183,7 @@ class StackedHorizontalBarCard extends LitElement {
     if (!fillCard && titlePos === 'bottom' && hasTitle) bottomParts.push(titleEl);
     const topBlock = topParts.length ? html`${topParts}` : null;
     const bottomBlock = bottomParts.length ? html`${bottomParts}` : null;
-    const barUsesFlex = fillCard || barAutofill;
-    const barStyle = barUsesFlex
-      ? 'flex:1 1 0;min-height:0;overflow:hidden'
-      : `height:${barHeight}px;flex-shrink:0`;
+    const barStyle = 'flex:1 1 0;min-height:24px;overflow:hidden';
 
     return html`
       <div class="card-content ${fillCard ? 'no-bg' : ''}">
@@ -222,6 +216,8 @@ class StackedHorizontalBarCard extends LitElement {
     ha-card.no-bg {
       background: transparent;
       border-radius: 0;
+      box-shadow: none;
+      border: none;
     }
     .card-content {
       padding: 12px 16px;
@@ -536,29 +532,6 @@ class StackedHorizontalBarCardEditor extends LitElement {
             </select>
           </div>
           <div class="option-row">
-            <label class="option-label">
-              <input
-                type="checkbox"
-                .checked=${c.bar_height === 'auto' || !!c.bar_autofill}
-                @change=${(e) => this._valueChanged('bar_height', e.target.checked ? 'auto' : 24)}
-              />
-              Bar height: auto
-            </label>
-          </div>
-          <div class="option-help">When auto, bar fills card height (with padding). Otherwise use manual height below.</div>
-          <div class="option-row">
-            <label class="option-label">Bar height (px)</label>
-            <input
-              type="number"
-              class="input ${c.bar_height === 'auto' || c.bar_autofill ? 'disabled' : ''}"
-              min="8"
-              max="128"
-              .value=${typeof c.bar_height === 'number' ? c.bar_height : 24}
-              ?disabled=${c.bar_height === 'auto' || !!c.bar_autofill}
-              @input=${(e) => this._valueChanged('bar_height', parseInt(e.target.value) || 24)}
-            />
-          </div>
-          <div class="option-row">
             <label class="option-label">Bar radius (px)</label>
             <input
               type="number"
@@ -692,7 +665,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
       padding: 10px 14px;
       border-radius: 12px;
       border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.12));
-      background: var(--input-fill-color, rgba(255, 255, 255, 0.05));
+      background: var(--card-background-color, var(--ha-card-background, #fff));
       color: var(--primary-text-color);
       font-size: 14px;
       box-sizing: border-box;
@@ -710,6 +683,10 @@ class StackedHorizontalBarCardEditor extends LitElement {
     .select {
       cursor: pointer;
       max-width: 200px;
+    }
+    .select option {
+      background: var(--card-background-color, var(--ha-card-background, #fff));
+      color: var(--primary-text-color);
     }
     .entity-row {
       display: flex;
