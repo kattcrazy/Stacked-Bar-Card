@@ -2,6 +2,8 @@
 
 A Home Assistant Lovelace card that displays a horizontal stacked bar — like a pie chart in a line. Each segment represents an entity's numeric value with configurable colors, gradients, and ordering.
 
+![Header](images/Header.png)
+
 ## Installation
 
 ### HACS (recommended)
@@ -35,6 +37,7 @@ resources:
 | `title` | string | — | Card title text |
 | `title_position` | `top`, `bottom` | `top` | Title placement |
 | `show_legend` | boolean | `true` | Show legend with labels |
+| `legend_show_zero` | boolean | `true` | Include entities with 0 value in legend |
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
@@ -55,9 +58,19 @@ resources:
 
 Entities must have numeric `state` values. Proportions are computed from the sum of all values.
 
+### Use as a progress bar
+
+Use the card as a 0–100% progress bar by combining your number entity with a helper:
+
+1. Use your number entity (e.g. `sensor.battery_level` = 75).
+2. Create a helper entity with this template `{{ 100 - states('sensor.battery_level') | float }}`, replacing `sensor.battery_level`  with your entity.
+3. Add both entities to the card, the first for the "filled" portion, the second for the "remaining" portion. Use two distinct colors (e.g. dark blue & light blue).
+
 ### UI config
 
-<p style="max-width: 100vw;"><img src="images/Config-1.png" alt="Config 1" style="max-width: 50%;"> <img src="images/Config-2.png" alt="Config 2" style="max-width: 50%;"></p>
+![Config-1](images/Config-1.png)
+
+![Config-2](images/Config-2.png)
 
 ### Full config with all options
 For your copy-paste convenience!
@@ -71,6 +84,7 @@ title: Energy Usage
 title_position: top/bottom
 
 show_legend: true/false
+legend_show_zero: true/false
 legend_position: top/bottom
 
 show_state: legend/bar/both/none
