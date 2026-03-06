@@ -30,6 +30,8 @@ resources:
 
 ### Card options
 
+All options support Jinja templates (strings containing `{{ }}`).
+
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `alignment` | `left`, `center`, `right` | `left` | Horizontal alignment for both title and legend |
@@ -45,31 +47,37 @@ resources:
 | `gradient` | `none`, `left`, `right`, `center`, `top`, `bottom` | `none` | Gradient direction |
 | `fill_card` | boolean | `false` | Remove card background; bar fills grid cell; hides title/legend |
 | `entities` | array | `[]` | Entity list (see below) |
-| `grid_options` | object | — | Passed through for dashboard layout |
 
 ### Entity options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `entity` | string | required | Entity ID |
-| `name` | string | — | Override name; omit to use friendly name |
-| `color` | string | auto | Hex (e.g. `#FF0000`) or HA variable (e.g. `var(--primary-color)`) |
-| `order` | number | — | Used when `sort: custom` |
+| `entity` | string | required | Entity ID (e.g. `sensor.battery_level`) or Jinja template for value (e.g. `"{{ 100 - states('sensor.battery_level') | float }}"`) |
+| `name` | string | — | Override name; omit to use friendly name. Supports Jinja. |
+| `color` | string | auto | Hex (e.g. `#FF0000`) or HA variable. Supports Jinja. |
+| `order` | number | — | Used when `sort: custom`. Supports Jinja. |
 
-Entities must have numeric `state` values. Proportions are computed from the sum of all values.
-
-### Use as a progress bar
-
-Use the card as a 0–100% progress bar by combining your number entity with a helper:
-
-1. Use your number entity (e.g. `sensor.battery_level` = 75).
-2. Create a helper entity with this template `{{ 100 - states('sensor.battery_level') | float }}`, replacing `sensor.battery_level`  with your entity.
-3. Add both entities to the card, the first for the "filled" portion, the second for the "remaining" portion. Use two distinct colors (e.g. dark blue & light blue).
+Entities must have numeric values (from entity state or from a Jinja template in `entity`). Proportions are computed from the sum.
 
 ### UI config
 
 <p><img src="images/Config-1.png" alt="Config 1"></p>
 <p><img src="images/Config-2.png" alt="Config 2"></p>
+
+### Use as a progress bar (no helper needed)
+
+Put a Jinja template directly in `entity` for computed values:
+
+```yaml
+entities:
+  - entity: "{{ states('sensor.battery_level') | float }}"
+    name: Filled
+    color: '#2196F3'
+  - entity: "{{ 100 - states('sensor.battery_level') | float }}"
+    name: Remaining
+    color: '#E0E0E0'
+```
+
 
 ### Full config with all options
 For your copy-paste convenience!
@@ -95,10 +103,11 @@ gradient: none/left/right/center/top/bottom
 fill_card: true/false
 
 entities:
-  - entity: sensor.grid_usage
+  - entity: sensor.grid_usage  # Or use Jinja templating
     name: Grid
     color: '#4472C4'
     order: 1
+ 
 
 ```
 

@@ -14,6 +14,20 @@ function parseNumber(val) {
   return isNaN(n) ? 0 : Math.max(0, n);
 }
 
+function isTemplate(v) {
+  return typeof v === 'string' && v.includes('{{') && v.includes('}}');
+}
+
+function getAtPath(obj, path) {
+  const parts = path.split('.');
+  let cur = obj;
+  for (const p of parts) {
+    if (cur == null) return undefined;
+    cur = cur[p];
+  }
+  return cur;
+}
+
 function lightenColor(color) {
   if (!color || typeof color !== 'string') return color;
   if (color.trim().startsWith('var(')) {
@@ -35,12 +49,15 @@ class StackedHorizontalBarCard extends LitElement {
   static properties = {
     hass: { type: Object, attribute: false },
     _config: { type: Object, state: true },
+    _templateResults: { type: Object, state: true },
   };
 
   constructor() {
     super();
     this.hass = null;
     this._config = null;
+    this._templateResults = {};
+    this._templateUnsubscribes = {};
   }
 
   static getConfigElement() {
@@ -64,26 +81,120 @@ class StackedHorizontalBarCard extends LitElement {
     this._config = { ...config, entities };
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+  }
+
+  disconnectedCallback() {
+    Object.values(this._templateUnsubscribes).forEach((fn) => { try { fn(); } catch (_) {} });
+    this._templateUnsubscribes = {};
+    this._templateResults = {};
+    super.disconnectedCallback();
+  }
+
+  willUpdate(changedProperties) {
+    if (changedProperties.has('hass') || changedProperties.has('_config')) {
+      this._updateTemplateSubscriptions();
+    }
+  }
+
+  _collectTemplates(cfg, prefix = '') {
+    const out = {};
+    if (!cfg || typeof cfg !== 'object') return out;
+    const keys = Array.isArray(cfg) ? cfg.map((_, i) => String(i)) : Object.keys(cfg);
+    for (const k of keys) {
+      const v = cfg[k];
+      const path = prefix ? `${prefix}.${k}` : k;
+      if (isTemplate(v)) {
+        out[path] = v;
+      } else if (k === 'entities' && Array.isArray(v)) {
+        v.forEach((ent, i) => {
+          Object.assign(out, this._collectTemplates(ent, `entities.${i}`));
+        });
+      }
+    }
+    return out;
+  }
+
+  _resolve(path, fallback = undefined) {
+    const raw = getAtPath(this._config, path);
+    if (isTemplate(raw)) {
+      const result = this._templateResults[path];
+      return result !== undefined ? result : fallback;
+    }
+    return raw !== undefined ? raw : fallback;
+  }
+
+  async _updateTemplateSubscriptions() {
+    const cfg = this._config;
+    const hass = this.hass;
+    if (!hass || !hass.connection || !cfg) return;
+
+    const templates = this._collectTemplates(cfg);
+
+    Object.keys(this._templateUnsubscribes).forEach((key) => {
+      if (!(key in templates)) {
+        try { this._templateUnsubscribes[key](); } catch (_) {}
+        delete this._templateUnsubscribes[key];
+        delete this._templateResults[key];
+      }
+    });
+
+    for (const [path, template] of Object.entries(templates)) {
+      if (this._templateUnsubscribes[path]) continue;
+
+      const entityIds = [];
+      const match = path.match(/^entities\.(\d+)/);
+      if (match) {
+        const ent = cfg.entities?.[parseInt(match[1], 10)];
+        if (ent?.entity && !isTemplate(ent.entity)) entityIds.push(ent.entity);
+      }
+
+      try {
+        const unsub = await hass.connection.subscribeMessage(
+          (msg) => {
+            const res = msg.result;
+            this._templateResults = { ...this._templateResults, [path]: res };
+            this.requestUpdate();
+          },
+          { type: 'render_template', template: String(template).trim(), entity_ids: entityIds }
+        );
+        this._templateUnsubscribes[path] = unsub;
+      } catch (_) {}
+    }
+  }
+
   _getSortedSegments() {
     const cfg = this._config;
-    if (!this.hass || !cfg || !cfg.entities.length) return [];
+    if (!this.hass || !cfg || !cfg.entities?.length) return [];
 
-    const validEntities = cfg.entities.filter((e) => e && e.entity);
-    const segments = validEntities.map((ent, idx) => {
-      const state = this.hass.states[ent.entity];
-      const value = state ? parseNumber(state.state) : 0;
-      const name = ent.name != null && ent.name !== '' ? ent.name : (state?.attributes?.friendly_name || ent.entity);
-      const color = ent.color || DEFAULT_COLORS[idx % DEFAULT_COLORS.length];
+    const validEntities = cfg.entities
+      .map((e, cfgIdx) => (e && (e.entity || isTemplate(e.entity))) ? { ...e, _cfgIdx: cfgIdx } : null)
+      .filter(Boolean);
+    const segments = validEntities.map((ent, i) => {
+      let value;
+      const rawEntity = ent.entity;
+      if (isTemplate(rawEntity)) {
+        value = parseNumber(this._resolve(`entities.${ent._cfgIdx}.entity`));
+      } else {
+        const state = rawEntity ? this.hass.states[rawEntity] : null;
+        value = state ? parseNumber(state.state) : 0;
+      }
+      const name = this._resolve(`entities.${ent._cfgIdx}.name`);
+      const fallbackName = !isTemplate(rawEntity) && rawEntity ? (this.hass.states[rawEntity]?.attributes?.friendly_name || rawEntity) : null;
+      const resolvedName = name != null && name !== '' ? name : (fallbackName || 'Segment');
+      const color = this._resolve(`entities.${ent._cfgIdx}.color`) || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
+      const order = this._resolve(`entities.${ent._cfgIdx}.order`);
       return {
-        entity: ent.entity,
-        name,
+        entity: rawEntity || '',
+        name: resolvedName,
         value,
         color,
-        order: ent.order != null ? ent.order : idx,
+        order: order != null ? order : ent._cfgIdx,
       };
     });
 
-    const sort = cfg.sort || 'highest';
+    const sort = this._resolve('sort') || 'highest';
     segments.sort((a, b) => {
       if (sort === 'custom') return (a.order ?? 0) - (b.order ?? 0);
       if (sort === 'abc') return (a.name || '').localeCompare(b.name || '');
@@ -100,15 +211,16 @@ class StackedHorizontalBarCard extends LitElement {
     const cfg = this._config;
     const segments = this._getSortedSegments();
     const total = segments.reduce((s, seg) => s + seg.value, 0);
-    const barRadius = cfg.bar_radius != null && cfg.bar_radius !== '' ? cfg.bar_radius : 'var(--ha-card-border-radius, 12px)';
-    const showState = cfg.show_state || 'legend';
-    const showLegend = cfg.show_legend !== false;
-    const legendShowZero = cfg.legend_show_zero !== false;
+    const barRadiusRaw = this._resolve('bar_radius');
+    const barRadius = barRadiusRaw != null && barRadiusRaw !== '' ? barRadiusRaw : 'var(--ha-card-border-radius, 12px)';
+    const showState = this._resolve('show_state') || 'legend';
+    const showLegend = this._resolve('show_legend') !== false;
+    const legendShowZero = this._resolve('legend_show_zero') !== false;
     const legendSegments = legendShowZero ? segments : segments.filter((s) => s.value !== 0);
     const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
     const showOnBar = showState === 'bar' || showState === 'both' || (showState === 'legend' && !showLegend);
-    const alignment = cfg.alignment ?? cfg.title_alignment ?? cfg.legend_alignment ?? 'left';
-    const fillCard = cfg.fill_card === true || cfg.remove_background === true;
+    const alignment = this._resolve('alignment') ?? this._resolve('title_alignment') ?? this._resolve('legend_alignment') ?? 'left';
+    const fillCard = this._resolve('fill_card') === true || this._resolve('remove_background') === true;
 
     if (segments.length === 0 || total <= 0) {
       const noBg = fillCard;
@@ -120,7 +232,7 @@ class StackedHorizontalBarCard extends LitElement {
     }
 
     const barRadiusPx = typeof barRadius === 'number' ? `${barRadius}px` : String(barRadius);
-    const gradient = cfg.gradient || 'none';
+    const gradient = this._resolve('gradient') || 'none';
     const barEls = segments.map((seg, i) => {
       const pct = (seg.value / total) * 100;
       const isFirst = i === 0;
@@ -168,14 +280,15 @@ class StackedHorizontalBarCard extends LitElement {
         `
       : nothing;
 
-    const showTitle = cfg.show_title !== false;
-    const hasTitle = showTitle && cfg.title != null && cfg.title !== '';
+    const showTitle = this._resolve('show_title') !== false;
+    const titleVal = this._resolve('title');
+    const hasTitle = showTitle && titleVal != null && titleVal !== '';
     const titleEl = hasTitle
-      ? html`<div class="card-title" style="text-align:${alignment}">${cfg.title}</div>`
+      ? html`<div class="card-title" style="text-align:${alignment}">${titleVal}</div>`
       : nothing;
 
-    const titlePos = cfg.title_position || 'top';
-    const legendPos = cfg.legend_position || 'bottom';
+    const titlePos = this._resolve('title_position') || 'top';
+    const legendPos = this._resolve('legend_position') || 'bottom';
 
     const topParts = [];
     if (!fillCard && titlePos === 'top' && hasTitle) topParts.push(titleEl);
@@ -202,7 +315,7 @@ class StackedHorizontalBarCard extends LitElement {
 
   render() {
     if (!this._config) return nothing;
-    const fillCard = this._config.fill_card === true || this._config.remove_background === true;
+    const fillCard = this._resolve('fill_card') === true || this._resolve('remove_background') === true;
     return html` <ha-card class="${fillCard ? 'no-bg' : ''}">${this._getCardContent()}</ha-card> `;
   }
 
@@ -562,7 +675,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
 
         <div class="section">
           <div class="section-header">Entities</div>
-          <div class="option-help">Add entities with numeric state. Values are shown as proportions.</div>
+          <div class="option-help">Add entities with numeric state. Values are shown as proportions. Any option (including entity, name, color) accepts Jinja templates.</div>
           ${entities.map(
             (ent, i) => html`
               <div class="entity-row">
@@ -572,7 +685,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
                     class="input entity-input"
                     .value=${ent.entity || ''}
                     list="entity-list-${i}"
-                    placeholder="Entity ID (e.g. sensor.x)"
+                    placeholder="Entity ID or Jinja template"
                     @input=${(e) => this._entityChanged(i, 'entity', e.target.value)}
                   />
                   <datalist id="entity-list-${i}">
@@ -589,7 +702,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
                     type="text"
                     class="input color-input"
                     .value=${ent.color ?? ''}
-                    placeholder="Color (hex or var)"
+                    placeholder="Color (hex or var; Jinja supported)"
                     @input=${(e) => this._entityChanged(i, 'color', e.target.value || undefined)}
                   />
                   ${(c.sort || 'highest') === 'custom'
@@ -728,6 +841,10 @@ class StackedHorizontalBarCardEditor extends LitElement {
     .entity-fields .color-input {
       min-width: 100px;
       max-width: 140px;
+    }
+    .entity-fields .template-input {
+      min-width: 180px;
+      flex: 1;
     }
     .entity-fields .order-input {
       width: 60px;
