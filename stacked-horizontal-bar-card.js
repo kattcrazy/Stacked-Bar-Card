@@ -103,6 +103,8 @@ class StackedHorizontalBarCard extends LitElement {
     const barRadius = cfg.bar_radius != null && cfg.bar_radius !== '' ? cfg.bar_radius : 'var(--ha-card-border-radius, 12px)';
     const showState = cfg.show_state || 'legend';
     const showLegend = cfg.show_legend !== false;
+    const legendShowZero = cfg.legend_show_zero !== false;
+    const legendSegments = legendShowZero ? segments : segments.filter((s) => s.value !== 0);
     const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
     const showOnBar = showState === 'bar' || showState === 'both' || (showState === 'legend' && !showLegend);
     const alignment = cfg.alignment ?? cfg.title_alignment ?? cfg.legend_alignment ?? 'left';
@@ -145,7 +147,7 @@ class StackedHorizontalBarCard extends LitElement {
     const legendEl = showLegend
       ? html`
           <div class="legend" style="justify-content:${alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start'}">
-            ${segments.map(
+            ${legendSegments.map(
               (seg) => {
                 let swatchBg = seg.color;
                 const light = lightenColor(seg.color);
@@ -189,7 +191,7 @@ class StackedHorizontalBarCard extends LitElement {
       <div class="card-content ${fillCard ? 'no-bg' : ''}">
         <div class="card-inner">
           ${topBlock ? html`<div class="top">${topBlock}</div>` : nothing}
-          <div class="bar-container" style="${barStyle}">
+          <div class="bar-container" style="${barStyle};border-radius:${barRadiusPx}">
             <div class="bar" style="border-radius:${barRadiusPx}">${barEls}</div>
           </div>
           ${bottomBlock ? html`<div class="bottom">${bottomBlock}</div>` : nothing}
@@ -474,6 +476,16 @@ class StackedHorizontalBarCardEditor extends LitElement {
               <option value="top">Top</option>
               <option value="bottom">Bottom</option>
             </select>
+          </div>
+          <div class="option-row">
+            <label class="option-label">
+              <input
+                type="checkbox"
+                .checked=${c.legend_show_zero !== false}
+                @change=${(e) => this._valueChanged('legend_show_zero', e.target.checked)}
+              />
+              Show zero in legend
+            </label>
           </div>
           <div class="option-row">
             <label class="option-label">Show state</label>
