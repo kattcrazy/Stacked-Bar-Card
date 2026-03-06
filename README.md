@@ -52,7 +52,7 @@ All options support Jinja templates (strings containing `{{ }}`).
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
-| `entity` | string | required | Entity ID (e.g. `sensor.battery_level`) or Jinja template for value (e.g. `"{{ 100 - states('sensor.battery_level') | float }}"`) |
+| `entity` | string | required | Entity ID (e.g. `sensor.battery_level`) or Jinja template (e.g. `"{{states('sensor.battery_level')}}) |
 | `name` | string | — | Override name; omit to use friendly name. Supports Jinja. |
 | `color` | string | auto | Hex (e.g. `#FF0000`) or HA variable. Supports Jinja. |
 | `order` | number | — | Used when `sort: custom`. Supports Jinja. |
