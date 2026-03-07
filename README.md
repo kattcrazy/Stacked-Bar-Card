@@ -120,15 +120,15 @@ show_state: legend
 sort: highest
 bar_height: auto
 entities:
-  - entity: sensor.wifi_devices
+  - entity: sensor.wifi_devices # Your entity here
     name: Wifi
     gradient: true
     color: "#7CD5FD"
-  - entity: sensor.local_devices
+  - entity: sensor.local_devices # Your entity here
     name: Local
     gradient: true
     color: "#A2D7A4"
-  - entity: sensor.z2mqtt_devices
+  - entity: sensor.z2mqtt_devices # Your entity here
     gradient: true
     color: "#FFDE7A"
     name: Z2MQTT
@@ -143,6 +143,32 @@ fill_card: false
 show_title: true
 alignment: center
 bar_radius: 13
+
+```
+
+Here's the configuration code used to get the sensors in the example above. It uses the labels assigned to devices.
+
+```yaml
+
+template:
+  - sensor:
+      - name: Z2MQTT Devices
+        state: "{{ label_devices('Z2MQTT') | count }}"
+
+      - name: Local Devices
+        state: "{{ label_devices('Local') | count }}"
+
+      - name: WIFI Devices
+        state: "{{ label_devices('WIFI') | count }}"
+
+      - name: Unlabelled Devices
+        state: >
+          {{
+            states('sensor.devices') | int
+            - states('sensor.z2mqtt_devices') | int
+            - states('sensor.local_devices') | int
+            - states('sensor.wifi_devices') | int
+          }}
 
 ```
 
