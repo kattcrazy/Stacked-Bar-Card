@@ -151,13 +151,18 @@ class StackedHorizontalBarCard extends LitElement {
       }
 
       try {
+        let templateStr = String(template).trim();
+        // Strip surrounding quotes that can sneak in from YAML/UI and break Jinja (treats as string literal)
+        if ((templateStr.startsWith('"') && templateStr.endsWith('"')) || (templateStr.startsWith("'") && templateStr.endsWith("'"))) {
+          templateStr = templateStr.slice(1, -1).trim();
+        }
         const unsub = await hass.connection.subscribeMessage(
           (msg) => {
             const res = msg.result;
             this._templateResults = { ...this._templateResults, [path]: res };
             this.requestUpdate();
           },
-          { type: 'render_template', template: String(template).trim(), entity_ids: entityIds }
+          { type: 'render_template', template: templateStr, entity_ids: entityIds }
         );
         this._templateUnsubscribes[path] = unsub;
       } catch (_) {}
