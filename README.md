@@ -211,7 +211,11 @@ entities:
   - entity: sensor.docker_mosquitto_memory # Your entity here
     name: Mosquitto 
     color: "#D8B4FE"
-  - entity: "{{ states('sensor.total_storage') | float - states('sensor.docker_homeassistant_memory') | float - states('sensor.docker_nginx_memory') | float - states('sensor.docker_mosquitto_memory') | float }}" # Your entities here, in the template
+  - entity: >-
+      {{ states('sensor.total_storage') | float
+      - states('sensor.docker_homeassistant_memory') | float
+      - states('sensor.docker_nginx_memory') | float
+      - states('sensor.docker_mosquitto_memory') | float }}
     name: Unused 
     color: "#D4D4D4"
 sort: highest
