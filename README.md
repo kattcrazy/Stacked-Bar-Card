@@ -6,8 +6,9 @@ A Home Assistant Lovelace card that displays a horizontal stacked bar — like a
 
 ## Installation
 
+### HACS (recommended)
 <details>
-<summary><strong>HACS (recommended)</strong></summary>
+<summary>View steps</summary>
 
 1. Open HACS
 2. Click the three dots in the top right, then 'Custom repositories'
@@ -17,8 +18,9 @@ A Home Assistant Lovelace card that displays a horizontal stacked bar — like a
 
 </details>
 
+### Manual
 <details>
-<summary><strong>Manual</strong></summary>
+<summary>View steps</summary>
 
 1. Download `stacked-horizontal-bar-card.js` from the [releases](https://github.com/kattcrazy/Stacked-Horizontal-Bar-Card/releases) page
 2. Place it in your `config/www/` folder
@@ -65,8 +67,9 @@ All options support Jinja templates (strings containing `{{ }}`).
 
 Entities must have numeric values (from entity state or from a Jinja template in `entity`). Proportions are computed from the sum.
 
+### UI config
 <details>
-<summary><strong>UI config</strong></summary>
+<summary>View screenshots</summary>
 
 <p><img src="images/Config-1.png" alt="Config 1"></p>
 <p><img src="images/Config-2.png" alt="Config 2"></p>
@@ -110,8 +113,9 @@ entities:
 
 ![Liquid Ice](images/Liquid-ice.png) ![Light](images/Light.png) ![Dark](images/Dark.png)
 
+### Communication Protocols
 <details>
-<summary><strong>Communication Protocols</strong></summary>
+<summary>View config</summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -174,8 +178,9 @@ template:
 
 </details>
 
+### Progress Bar
 <details>
-<summary><strong>Progress Bar</strong></summary>
+<summary>View config</summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -195,8 +200,9 @@ sort: custom
 
 </details>
 
+### Storage usage
 <details>
-<summary><strong>Storage usage</strong></summary>
+<summary>View config</summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -221,8 +227,9 @@ legend_show_zero: false
 
 </details>
 
+### CPU usage
 <details>
-<summary><strong>CPU usage</strong></summary>
+<summary>View config</summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
