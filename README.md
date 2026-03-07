@@ -73,24 +73,6 @@ Entities must have numeric values (from entity state or from a Jinja template in
 
 </details>
 
-### Use as a progress bar
-
-```yaml
-type: custom:stacked-horizontal-bar-card
-entities:
-  - entity: "{{ states('sensor.percent_finished') | float }}" # Your entity here
-    name: Completed
-    color: '#2196F3'  # Your colour here
-    order: 1
-  - entity: "{{ 100 - states('sensor.percent_finished') | float }}" # Your entity here
-    name: Remaining
-    color: '#E0E0E0' # Dimmer/brighter version of the colour here
-    order: 2
-show_legend: false
-show_state: none
-sort: custom
-```
-
 
 ### Full config with all options
 For your copy-paste convenience!
@@ -373,8 +355,76 @@ title: Protocols
 
 </details>
 
-## To-Do
-- Add more example use cases like the progress bar
+<details>
+<summary><strong>Progress Bar</strong></summary>
+
+```yaml
+type: custom:stacked-horizontal-bar-card
+entities:
+  - entity: "{{ states('sensor.percent_finished') | float }}" # Your entity here
+    name: Completed
+    color: '#2196F3'  
+    order: 1
+  - entity: "{{ 100 - states('sensor.percent_finished') | float }}" # Your entity here
+    name: Remaining
+    color: '#E0E0E0' # Paler version of chosen colour here
+    order: 2
+show_legend: false
+show_state: none
+sort: custom
+```
+
+</details>
+
+<details>
+<summary><strong>Storage usage</strong></summary>
+
+```yaml
+type: custom:stacked-horizontal-bar-card
+title:  Storage
+entities:
+  - entity: sensor.docker_homeassistant_memory # Your entity here
+    name: Home Assistant
+    color: '#03A9F4' 
+  - entity: sensor.docker_nginx_memory # Your entity here
+    name: Nginx
+    color: '#4CAF50'
+  - entity: sensor.docker_mosquitto_memory # Your entity here
+    name: Mosquitto 
+    color: '#9C27B0'
+  - entity: "{{ states('sensor.total_storage') | float - states('sensor.docker_homeassistant_memory') | float - states('sensor.docker_nginx_memory') | float - states('sensor.docker_mosquitto_memory') | float }}" # Your entities here, in the template
+    name: Unused 
+    color: '#9E9E9E'
+sort: highest
+show_state: bar
+legend_show_zero: false
+```
+
+</details>
+
+<details>
+<summary><strong>CPU usage</strong></summary>
+
+```yaml
+type: custom:stacked-horizontal-bar-card
+title: CPU Usage
+entities:
+  - entity: sensor.docker_homeassistant_cpu # Your entity here
+    name: Home Assistant
+    color: '#03A9F4'
+  - entity: sensor.docker_nginx_cpu  # Your entity here
+    name: Nginx
+    color: '#4CAF50'
+  - entity: sensor.docker_mosquitto_cpu # Your entity here
+    name: Mosquitto
+    color: '#9C27B0'
+sort: highest
+show_state: bar
+legend_show_zero: false
+```
+
+</details>
+
 
 ## About
 This is my first Home Assistant card that I will be maintaining for public use. I have tested it on my own setup and it works perfectly! Please report an issue if something doesn't work, I'll try my best to fix it.
