@@ -6,7 +6,7 @@
 //
 import { html, css, LitElement, nothing } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
 
-const DEFAULT_COLORS = ['#4472C4', '#ED7D31', '#A5A5A5', '#FFC000', '#5B9BD5', '#70AD47'];
+const DEFAULT_COLORS = ['#93B5F2', '#F6B38A', '#D6D6D6', '#FFE08A', '#A8C9F0', '#A6D68A'];
 
 function parseNumber(val) {
   if (val === null || val === undefined) return 0;
@@ -226,14 +226,18 @@ class StackedHorizontalBarCard extends LitElement {
     const total = segments.reduce((s, seg) => s + seg.value, 0);
     const barRadiusRaw = this._resolve('bar_radius');
     const barRadius = barRadiusRaw != null && barRadiusRaw !== '' ? barRadiusRaw : 'var(--ha-card-border-radius, 12px)';
-    const showState = this._resolve('show_state') || 'legend';
+    const fillCard = this._resolve('fill_card') === true || this._resolve('remove_background') === true;
+    let showState = this._resolve('show_state') || 'legend';
+    if (fillCard) {
+      if (showState === 'legend') showState = 'none';
+      else if (showState === 'both') showState = 'bar';
+    }
     const showLegend = this._resolve('show_legend') !== false;
     const legendShowZero = this._resolve('legend_show_zero') !== false;
     const legendSegments = legendShowZero ? segments : segments.filter((s) => s.value !== 0);
     const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
     const showOnBar = showState === 'bar' || showState === 'both' || (showState === 'legend' && !showLegend);
     const alignment = this._resolve('alignment') ?? this._resolve('title_alignment') ?? this._resolve('legend_alignment') ?? 'left';
-    const fillCard = this._resolve('fill_card') === true || this._resolve('remove_background') === true;
 
     if (segments.length === 0 || total <= 0) {
       const noBg = fillCard;
@@ -312,12 +316,13 @@ class StackedHorizontalBarCard extends LitElement {
     const topBlock = topParts.length ? html`${topParts}` : null;
     const bottomBlock = bottomParts.length ? html`${bottomParts}` : null;
     const barStyle = 'flex:1 1 0;min-height:24px;overflow:hidden';
+    const insetShadow = gradient === 'inset' ? ';box-shadow:inset 0 0 25px 4px rgba(255,255,255,0.18)' : '';
 
     return html`
       <div class="card-content ${fillCard ? 'no-bg' : ''}">
         <div class="card-inner">
           ${topBlock ? html`<div class="top">${topBlock}</div>` : nothing}
-          <div class="bar-container" style="${barStyle};border-radius:${barRadiusPx}">
+          <div class="bar-container" style="${barStyle};border-radius:${barRadiusPx}${insetShadow}">
             <div class="bar" style="border-radius:${barRadiusPx}">${barEls}</div>
           </div>
           ${bottomBlock ? html`<div class="bottom">${bottomBlock}</div>` : nothing}
@@ -473,7 +478,9 @@ class StackedHorizontalBarCardEditor extends LitElement {
   }
 
   _toggleEntityExpand(i) {
-    this._expandedEntities = { ...this._expandedEntities, [i]: !this._expandedEntities[i] };
+    const ent = this._config.entities?.[i];
+    const currentlyExpanded = this._expandedEntities[i] ?? isTemplate(ent?.entity);
+    this._expandedEntities = { ...this._expandedEntities, [i]: !currentlyExpanded };
   }
 
   setConfig(config) {
@@ -658,6 +665,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
               @change=${(e) => this._valueChanged('gradient', e.target.value)}
             >
               <option value="none">None</option>
+              <option value="inset">Inset (lighter edges)</option>
               <option value="left">Left to right</option>
               <option value="right">Right to left</option>
               <option value="center">Center</option>
@@ -697,7 +705,11 @@ class StackedHorizontalBarCardEditor extends LitElement {
           <div class="option-help">Add entities with numeric state. Values are shown as proportions. Any option (including entity, name, color) accepts Jinja templates.</div>
           ${entities.map(
             (ent, i) => {
-              const expanded = this._expandedEntities[i];
+              const expanded = this._expandedEntities[i] ?? isTemplate(ent.entity);
+              const entityLines = (ent.entity || '').split('\n').length;
+              const textareaRows = Math.max(4, entityLines + 1);
+              const colorVal = ent.color ?? '';
+              const showColorSwatch = colorVal && /^#[0-9A-Fa-f]{3,8}$/.test(colorVal.trim());
               return html`
               <div class="entity-row">
                 <div class="entity-fields">
@@ -709,7 +721,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
                               class="input entity-input entity-textarea"
                               .value=${ent.entity || ''}
                               placeholder="Entity ID or Jinja template"
-                              rows="4"
+                              rows="${textareaRows}"
                               @input=${(e) => this._entityChanged(i, 'entity', e.target.value)}
                             ></textarea>
                           `
@@ -733,24 +745,27 @@ class StackedHorizontalBarCardEditor extends LitElement {
                       @click=${() => this._toggleEntityExpand(i)}
                       title=${expanded ? 'Collapse' : 'Expand for template'}
                     >
-                      <ha-icon icon=${expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'}></ha-icon>
+                      <ha-icon icon=${expanded ? 'mdi:fullscreen-exit' : 'mdi:fullscreen'}></ha-icon>
                     </button>
                   </div>
-                  <input
-                    type="text"
-                    class="input entity-name-input"
-                    .value=${ent.name ?? ''}
-                    placeholder="Name override"
-                    @input=${(e) => this._entityChanged(i, 'name', e.target.value || undefined)}
-                  />
                   <div class="entity-options-row">
                     <input
                       type="text"
-                      class="input color-input"
-                      .value=${ent.color ?? ''}
-                      placeholder="Color (hex or var)"
-                      @input=${(e) => this._entityChanged(i, 'color', e.target.value || undefined)}
+                      class="input entity-name-input"
+                      .value=${ent.name ?? ''}
+                      placeholder="Name override"
+                      @input=${(e) => this._entityChanged(i, 'name', e.target.value || undefined)}
                     />
+                    <div class="color-with-swatch">
+                      ${showColorSwatch ? html`<span class="color-swatch" style="background:${colorVal}"></span>` : nothing}
+                      <input
+                        type="text"
+                        class="input color-input"
+                        .value=${colorVal}
+                        placeholder="Color (hex or var)"
+                        @input=${(e) => this._entityChanged(i, 'color', e.target.value || undefined)}
+                      />
+                    </div>
                     ${(c.sort || 'highest') === 'custom'
                       ? html`
                           <input
@@ -896,20 +911,31 @@ class StackedHorizontalBarCardEditor extends LitElement {
       resize: vertical;
       min-height: 80px;
     }
-    .entity-name-input {
-      width: 100%;
-      box-sizing: border-box;
-    }
     .entity-options-row {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
       align-items: center;
     }
-    .entity-options-row .color-input {
-      min-width: 100px;
-      max-width: 140px;
+    .entity-options-row .entity-name-input {
       flex: 1;
+      min-width: 100px;
+    }
+    .color-with-swatch {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .color-swatch {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+      flex-shrink: 0;
+      border: 1px solid var(--divider-color, rgba(255,255,255,0.2));
+    }
+    .entity-options-row .color-input {
+      min-width: 80px;
+      max-width: 120px;
     }
     .entity-options-row .order-input {
       width: 60px;

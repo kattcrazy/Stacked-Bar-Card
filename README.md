@@ -2,12 +2,14 @@
 
 A Home Assistant Lovelace card that displays a horizontal stacked bar — like a pie chart in a line. Each segment represents an entity's numeric value with configurable colors, gradients, and ordering.
 
-![Header](images/Header.png)
+![Header](images/Headerv2.png)
 
 ## Installation
 
+### HACS (recommended)
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>HACS (recommended)</strong></summary>
+<summary>See instructions</summary>
 
 1. Open HACS
 2. Click the three dots in the top right, then 'Custom repositories'
@@ -17,8 +19,10 @@ A Home Assistant Lovelace card that displays a horizontal stacked bar — like a
 
 </details>
 
+### Manual
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>Manual</strong></summary>
+<summary>See instructions</summary>
 
 1. Download `stacked-horizontal-bar-card.js` from the [releases](https://github.com/kattcrazy/Stacked-Horizontal-Bar-Card/releases) page
 2. Place it in your `config/www/` folder
@@ -50,7 +54,7 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
 | `bar_radius` | number | theme | Bar segment border-radius (px); omit for theme default |
-| `gradient` | `none`, `left`, `right`, `center`, `top`, `bottom` | `none` | Gradient direction |
+| `gradient` | `none`, `inset`, `left`, `right`, `center`, `top`, `bottom` | `none` | Gradient direction; `inset` = lighter edges on bar container |
 | `fill_card` | boolean | `false` | Remove card background; bar fills grid cell; hides title/legend |
 | `entities` | array | `[]` | Entity list (see below) |
 
@@ -65,17 +69,22 @@ All options support Jinja templates (strings containing `{{ }}`).
 
 Entities must have numeric values (from entity state or from a Jinja template in `entity`). Proportions are computed from the sum.
 
+### UI config
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>UI config</strong></summary>
+<summary>See screenshots</summary>
 
 <p><img src="images/Config-1.png" alt="Config 1"></p>
 <p><img src="images/Config-2.png" alt="Config 2"></p>
 
 </details>
 
-
 ### Full config with all options
+
 For your copy-paste convenience!
+
+<details>
+<summary>See YAML</summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -94,7 +103,7 @@ show_state: legend/bar/both/none
 sort: abc/cba/highest/lowest/custom
 
 bar_radius: 8                # omit for theme default
-gradient: none/left/right/center/top/bottom
+gradient: none/inset/left/right/center/top/bottom
 fill_card: true/false
 
 entities:
@@ -106,12 +115,18 @@ entities:
 
 ```
 
+</details>
+
 ## Config Examples
 
 ![Liquid Ice](images/Liquid-ice.png) ![Light](images/Light.png) ![Dark](images/Dark.png)
 
+### Communication Protocols
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>Communication Protocols</strong></summary>
+<summary>See YAML</summary>
+
+![Protocols](images/Protocols.png)
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -122,16 +137,13 @@ bar_height: auto
 entities:
   - entity: sensor.wifi_devices # Your entity here
     name: Wifi
-    gradient: true
     color: "#7CD5FD"
   - entity: sensor.local_devices # Your entity here
     name: Local
-    gradient: true
     color: "#A2D7A4"
   - entity: sensor.z2mqtt_devices # Your entity here
-    gradient: true
-    color: "#FFDE7A"
     name: Z2MQTT
+    color: "#FFDE7A"
 legend_position: top
 title_position: top
 gradient: bottom
@@ -174,8 +186,12 @@ template:
 
 </details>
 
+### Progress Bar
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>Progress Bar</strong></summary>
+<summary>See YAML</summary>
+
+![Progress bar](images/Progress_bar.png)
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -195,8 +211,12 @@ sort: custom
 
 </details>
 
+### Storage usage
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>Storage usage</strong></summary>
+<summary>See YAML</summary>
+
+![Storage](images/Storage.png)
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -221,8 +241,12 @@ legend_show_zero: false
 
 </details>
 
+### CPU usage
+
 <details>
-<summary style="font-size: 1.75em; font-weight: 600;"><strong>CPU usage</strong></summary>
+<summary>See YAML</summary>
+
+![CPU](images/CPU.png)
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
