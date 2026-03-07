@@ -6,9 +6,8 @@ A Home Assistant Lovelace card that displays a horizontal stacked bar — like a
 
 ## Installation
 
-### HACS (recommended)
 <details>
-<summary>View steps</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>HACS (recommended)</strong></summary>
 
 1. Open HACS
 2. Click the three dots in the top right, then 'Custom repositories'
@@ -18,9 +17,8 @@ A Home Assistant Lovelace card that displays a horizontal stacked bar — like a
 
 </details>
 
-### Manual
 <details>
-<summary>View steps</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>Manual</strong></summary>
 
 1. Download `stacked-horizontal-bar-card.js` from the [releases](https://github.com/kattcrazy/Stacked-Horizontal-Bar-Card/releases) page
 2. Place it in your `config/www/` folder
@@ -67,9 +65,8 @@ All options support Jinja templates (strings containing `{{ }}`).
 
 Entities must have numeric values (from entity state or from a Jinja template in `entity`). Proportions are computed from the sum.
 
-### UI config
 <details>
-<summary>View screenshots</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>UI config</strong></summary>
 
 <p><img src="images/Config-1.png" alt="Config 1"></p>
 <p><img src="images/Config-2.png" alt="Config 2"></p>
@@ -113,9 +110,8 @@ entities:
 
 ![Liquid Ice](images/Liquid-ice.png) ![Light](images/Light.png) ![Dark](images/Dark.png)
 
-### Communication Protocols
 <details>
-<summary>View config</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>Communication Protocols</strong></summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -178,9 +174,8 @@ template:
 
 </details>
 
-### Progress Bar
 <details>
-<summary>View config</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>Progress Bar</strong></summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -200,9 +195,8 @@ sort: custom
 
 </details>
 
-### Storage usage
 <details>
-<summary>View config</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>Storage usage</strong></summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
@@ -227,9 +221,8 @@ legend_show_zero: false
 
 </details>
 
-### CPU usage
 <details>
-<summary>View config</summary>
+<summary style="font-size: 1.25em; font-weight: 600;"><strong>CPU usage</strong></summary>
 
 ```yaml
 type: custom:stacked-horizontal-bar-card
