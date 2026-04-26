@@ -252,4 +252,6 @@ This project uses the [GNU General Public License v3.0](https://www.gnu.org/lice
 ## About
 This is my first Home Assistant card that I will be maintaining for public use. I have tested it on my own setup and it works perfectly! Please report an issue if something doesn't work, I'll try my best to fix it.
 
-Support me [here](https://kattcrazy.nz/product/support-me/)
+Contributions/PRs welcome. 
+
+If this card is a good addition to your dashboards, consider supporting me [here](https://kattcrazy.nz/product/support-me/) :)
