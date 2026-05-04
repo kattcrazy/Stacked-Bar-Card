@@ -16,9 +16,6 @@ Now in HACS 🎉
 
 ### Manual
 
-<details>
-<summary>See instructions</summary>
-
 1. Download `stacked-bar-card.js` from the [releases](https://github.com/kattcrazy/Stacked-Bar-Card/releases) page
 2. Place it in your `config/www/` folder
 3. Add the resource in the Lovelace config:
@@ -27,9 +24,6 @@ resources:
   - url: /local/stacked-bar-card.js
     type: module
 ```
-4. Refresh your dashboard or Home Assistant if needed
-
-</details>
 
 ## Configuration
 
