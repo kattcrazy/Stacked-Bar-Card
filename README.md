@@ -8,18 +8,11 @@ Possible use-cases include storage usage, progress and timer bars, cpu usage, or
 
 ## Installation
 
-### HACS (recommended)
+### HACS (recommended) 
 
-<details>
-<summary>See instructions</summary>
+Now in HACS 🎉
 
-1. Open HACS
-2. Click the three dots in the top right, then 'Custom repositories'
-3. Paste `https://github.com/kattcrazy/Stacked-Bar-Card` and select "Dashboard"
-4. Search for 'Stacked Bar Card' in HACS and download
-5. Reload your page!
-
-</details>
+<a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=kattcrazy&category=plugin&repository=stacked-bar-card" target="_blank" rel="noreferrer noopener"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and open a repository inside the Home Assistant Community Store." /></a>
 
 ### Manual
 
