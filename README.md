@@ -105,7 +105,6 @@ type: custom:stacked-bar-card
 show_legend: true
 show_state: legend
 sort: highest
-bar_height: auto
 entities:
   - entity: sensor.wifi_devices # Your entity here
     name: Wifi
