@@ -41,6 +41,9 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `legend_show_zero` | boolean | `true` | Include entities with 0 value in legend |
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
+| `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units (same placement rules as `show_state`). Ignored when `show_state` is `none`. Global for all entities in the card. |
+| `unit_source` | `automatic`, `custom` | `automatic` | `automatic`: each segment uses that entity’s `unit_of_measurement`. `custom`: use `unit_custom` for every segment. |
+| `unit_custom` | string | — | Unit text when `unit_source` is `custom` (e.g. `kWh`, `%`). |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
 | `layout` | `horizontal`, `vertical` | `horizontal` | Bar direction; vertical stacks bottom to top |
 | `bar_radius` | number | theme | Bar segment border-radius (px); omit for theme default |
@@ -78,6 +81,10 @@ legend_show_zero: true/false
 legend_position: top/bottom
 
 show_state: legend/bar/both/none
+
+show_unit: legend/bar/both/none   # omitted or none when show_state is none
+unit_source: automatic/custom
+unit_custom: '%'                 # only when unit_source is custom
 
 sort: abc/cba/highest/lowest/custom
 layout: horizontal/vertical

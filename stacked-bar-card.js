@@ -78,6 +78,8 @@ class StackedHorizontalBarCard extends LitElement {
       show_title: true,
       show_legend: true,
       show_state: 'legend',
+      show_unit: 'none',
+      unit_source: 'automatic',
     };
   }
 
@@ -220,6 +222,19 @@ class StackedHorizontalBarCard extends LitElement {
     return segments;
   }
 
+  _getDisplayUnit(seg) {
+    const source = this._resolve('unit_source') || 'automatic';
+    if (source === 'custom') {
+      const u = this._resolve('unit_custom');
+      return u != null && String(u).trim() !== '' ? String(u).trim() : '';
+    }
+    const id = seg.entity;
+    if (!id || isTemplate(id) || isHardcodedNumber(id)) return '';
+    const st = this.hass?.states?.[id];
+    const u = st?.attributes?.unit_of_measurement;
+    return u != null && String(u).trim() !== '' ? String(u).trim() : '';
+  }
+
   _getCardContent() {
     const cfg = this._config;
     const segments = this._getSortedSegments();
@@ -232,11 +247,19 @@ class StackedHorizontalBarCard extends LitElement {
       if (showState === 'legend') showState = 'none';
       else if (showState === 'both') showState = 'bar';
     }
+    let showUnit = this._resolve('show_unit') || 'none';
+    if (fillCard) {
+      if (showUnit === 'legend') showUnit = 'none';
+      else if (showUnit === 'both') showUnit = 'bar';
+    }
+    if (showState === 'none') showUnit = 'none';
     const showLegend = this._resolve('show_legend') !== false;
     const legendShowZero = this._resolve('legend_show_zero') !== false;
     const legendSegments = legendShowZero ? segments : segments.filter((s) => s.value !== 0);
     const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
     const showOnBar = showState === 'bar' || showState === 'both' || (showState === 'legend' && !showLegend);
+    const showUnitInLegend = (showUnit === 'legend' || showUnit === 'both') && showLegend;
+    const showUnitOnBar = showUnit === 'bar' || showUnit === 'both' || (showUnit === 'legend' && !showLegend);
     const alignment = this._resolve('alignment') ?? this._resolve('title_alignment') ?? this._resolve('legend_alignment') ?? 'left';
 
     if (segments.length === 0 || total <= 0) {
@@ -266,13 +289,15 @@ class StackedHorizontalBarCard extends LitElement {
       else if (gradient === 'top') bg = `linear-gradient(180deg, ${seg.color}, ${light})`;
       else if (gradient === 'bottom') bg = `linear-gradient(0deg, ${seg.color}, ${light})`;
       const sizeProp = isVertical ? 'height' : 'width';
+      const unitStr = showUnitOnBar || showUnitInLegend ? this._getDisplayUnit(seg) : '';
+      const tip = unitStr ? `${seg.name}: ${seg.value} ${unitStr}` : `${seg.name}: ${seg.value}`;
+      const barLabel =
+        showOnBar && pct > 8
+          ? html`<span class="segment-value">${seg.value}${showUnitOnBar && unitStr ? ` ${unitStr}` : ''}</span>`
+          : nothing;
       return html`
-        <div
-          class="segment"
-          style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}"
-          title="${seg.name}: ${seg.value}"
-        >
-          ${showOnBar && pct > 8 ? html`<span class="segment-value">${seg.value}</span>` : nothing}
+        <div class="segment" style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}" title="${tip}">
+          ${barLabel}
         </div>
       `;
     });
@@ -288,10 +313,14 @@ class StackedHorizontalBarCard extends LitElement {
                 else if (gradient === 'right') swatchBg = `linear-gradient(90deg, ${light}, ${seg.color})`;
                 else if (gradient === 'top') swatchBg = `linear-gradient(180deg, ${seg.color}, ${light})`;
                 else if (gradient === 'bottom') swatchBg = `linear-gradient(0deg, ${seg.color}, ${light})`;
+                const unitStrL = showUnitInLegend ? this._getDisplayUnit(seg) : '';
+                let legendText = seg.name;
+                if (showInLegend) legendText += `: ${seg.value}`;
+                if (showUnitInLegend && unitStrL) legendText += ` ${unitStrL}`;
                 return html`
                 <div class="legend-item">
                   <span class="legend-swatch" style="background:${swatchBg};border-radius:${barRadiusPx}"></span>
-                  <span class="legend-label">${seg.name}${showInLegend ? `: ${seg.value}` : ''}</span>
+                  <span class="legend-label">${legendText}</span>
                 </div>
               `;
               }
@@ -618,32 +647,35 @@ class StackedHorizontalBarCardEditor extends LitElement {
               </span>
             </label>
           </div>
-          ${showLegend ? html`
-          <div class="option-row option-row-toggle">
-            <label class="toggle-row">
-              <span class="toggle-label">Show entities with state of 0 in legend</span>
-              <span class="toggle-switch">
-                <input
-                  type="checkbox"
-                  class="toggle-input"
-                  .checked=${c.legend_show_zero !== false}
-                  @change=${(e) => this._valueChanged('legend_show_zero', e.target.checked)}
-                />
-                <span class="toggle-track"><span class="toggle-thumb"></span></span>
-              </span>
-            </label>
-          </div>
-          <div class="option-row">
-            <label class="option-label">Position</label>
-            <select
-              class="select"
-              .value=${c.legend_position ?? 'bottom'}
-              @change=${(e) => this._valueChanged('legend_position', e.target.value)}
-            >
-              <option value="top">Top</option>
-              <option value="bottom">Bottom</option>
-            </select>
-          </div>
+          ${showLegend
+            ? html`
+                <div class="option-row option-row-toggle">
+                  <label class="toggle-row">
+                    <span class="toggle-label">Show entities with state of 0 in legend</span>
+                    <span class="toggle-switch">
+                      <input
+                        type="checkbox"
+                        class="toggle-input"
+                        .checked=${c.legend_show_zero !== false}
+                        @change=${(e) => this._valueChanged('legend_show_zero', e.target.checked)}
+                      />
+                      <span class="toggle-track"><span class="toggle-thumb"></span></span>
+                    </span>
+                  </label>
+                </div>
+                <div class="option-row">
+                  <label class="option-label">Position</label>
+                  <select
+                    class="select"
+                    .value=${c.legend_position ?? 'bottom'}
+                    @change=${(e) => this._valueChanged('legend_position', e.target.value)}
+                  >
+                    <option value="top">Top</option>
+                    <option value="bottom">Bottom</option>
+                  </select>
+                </div>
+              `
+            : nothing}
           <div class="option-row">
             <label class="option-label">Show state</label>
             <select
@@ -657,7 +689,49 @@ class StackedHorizontalBarCardEditor extends LitElement {
               <option value="none">Neither</option>
             </select>
           </div>
-          ` : nothing}
+          ${(c.show_state ?? 'legend') !== 'none'
+            ? html`
+                <div class="option-row section-subheader">Units</div>
+                <div class="option-row">
+                  <label class="option-label">Show unit</label>
+                  <select
+                    class="select"
+                    .value=${c.show_unit ?? 'none'}
+                    @change=${(e) => this._valueChanged('show_unit', e.target.value)}
+                  >
+                    <option value="bar">On bar</option>
+                    <option value="legend">In legend</option>
+                    <option value="both">Both</option>
+                    <option value="none">Neither</option>
+                  </select>
+                </div>
+                <div class="option-row">
+                  <label class="option-label">Unit source</label>
+                  <select
+                    class="select"
+                    .value=${c.unit_source ?? 'automatic'}
+                    @change=${(e) => this._valueChanged('unit_source', e.target.value)}
+                  >
+                    <option value="automatic">Automatic</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+                ${(c.unit_source ?? 'automatic') === 'custom'
+                  ? html`
+                      <div class="option-row">
+                        <label class="option-label">Custom unit</label>
+                        <input
+                          type="text"
+                          class="input"
+                          .value=${c.unit_custom ?? ''}
+                          placeholder="e.g. kWh, %"
+                          @input=${(e) => this._valueChanged('unit_custom', e.target.value)}
+                        />
+                      </div>
+                    `
+                  : nothing}
+              `
+            : nothing}
         </div>
         ` : nothing}
 
@@ -871,6 +945,15 @@ class StackedHorizontalBarCardEditor extends LitElement {
       margin-bottom: 12px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
+    }
+    .section-subheader {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--secondary-text-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      margin-top: 4px;
     }
     .option-row {
       margin-bottom: 16px;
