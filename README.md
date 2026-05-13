@@ -37,11 +37,11 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `show_title` | boolean | `true` | Show title |
 | `title` | string | — | Card title text |
 | `title_position` | `top`, `bottom` | `top` | Title placement |
-| `show_legend` | boolean | `true` | Show legend with labels |
-| `legend_show_zero` | boolean | `true` | Include entities with 0 value in legend |
+| `show_legend` | boolean | `true` | When true, the legend row is shown only if at least one of `show_state`, `show_name`, or `show_unit` uses `legend` or `both` |
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
-| `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units (same placement rules as `show_state`). Ignored when `show_state` is `none`. Global for all entities in the card. |
+| `show_name` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity names |
+| `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units. Ignored when `show_state` is `none`. |
 | `unit_source` | `automatic`, `custom` | `automatic` | `automatic`: each segment uses that entity’s `unit_of_measurement`. `custom`: use `unit_custom` for every segment. |
 | `unit_custom` | string | — | Unit text when `unit_source` is `custom` (e.g. `kWh`, `%`). |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
@@ -77,10 +77,10 @@ title: Energy Usage
 title_position: top/bottom
 
 show_legend: true/false
-legend_show_zero: true/false
 legend_position: top/bottom
 
 show_state: legend/bar/both/none
+show_name: legend/bar/both/none
 
 show_unit: legend/bar/both/none   # omitted or none when show_state is none
 unit_source: automatic/custom
@@ -213,7 +213,6 @@ entities:
     color: "#D4D4D4"
 sort: highest
 show_state: bar
-legend_show_zero: false
 ```
 
 ### CPU usage
@@ -235,7 +234,6 @@ entities:
     color: "#D8B4FE"
 sort: highest
 show_state: bar
-legend_show_zero: false
 ```
 
 ## License
