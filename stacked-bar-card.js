@@ -300,17 +300,17 @@ class StackedHorizontalBarCard extends LitElement {
       const sizeProp = isVertical ? 'height' : 'width';
       const unitStr = showUnitOnBar || showUnitInLegend ? this._getDisplayUnit(seg) : '';
       const tip = unitStr ? `${seg.name}: ${seg.value} ${unitStr}` : `${seg.name}: ${seg.value}`;
-      const minPctBar =
-        showNameOnBar && showOnBar ? 14 : showNameOnBar ? 12 : 8;
-      const showBarBlock = (showNameOnBar || showOnBar) && pct > minPctBar;
-      const barLabel = showBarBlock
-        ? html`<div class="segment-inner">
-            ${showNameOnBar ? html`<span class="segment-name">${seg.name}</span>` : nothing}
-            ${showOnBar
-              ? html`<span class="segment-value">${seg.value}${showUnitOnBar && unitStr ? ` ${unitStr}` : ''}</span>`
-              : nothing}
-          </div>`
-        : nothing;
+      const showValueOnBar = showOnBar && pct > 8;
+      const showNameOnBarSegment = showNameOnBar && pct > (showOnBar ? 12 : 10);
+      const barLabel =
+        showValueOnBar || showNameOnBarSegment
+          ? html`<div class="segment-inner">
+              ${showNameOnBarSegment ? html`<span class="segment-name">${seg.name}</span>` : nothing}
+              ${showValueOnBar
+                ? html`<span class="segment-value">${seg.value}${showUnitOnBar && unitStr ? ` ${unitStr}` : ''}</span>`
+                : nothing}
+            </div>`
+          : nothing;
       return html`
         <div class="segment" style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}" title="${tip}">
           ${barLabel}
@@ -748,29 +748,33 @@ class StackedHorizontalBarCardEditor extends LitElement {
                     <option value="none">Neither</option>
                   </select>
                 </div>
-                <div class="option-row">
-                  <label class="option-label">Unit source</label>
-                  <select
-                    class="select"
-                    .value=${c.unit_source ?? 'automatic'}
-                    @change=${(e) => this._valueChanged('unit_source', e.target.value)}
-                  >
-                    <option value="automatic">Automatic</option>
-                    <option value="custom">Custom</option>
-                  </select>
-                </div>
-                ${(c.unit_source ?? 'automatic') === 'custom'
+                ${(c.show_unit ?? 'none') !== 'none'
                   ? html`
                       <div class="option-row">
-                        <label class="option-label">Custom unit</label>
-                        <input
-                          type="text"
-                          class="input"
-                          .value=${c.unit_custom ?? ''}
-                          placeholder="e.g. kWh, %"
-                          @input=${(e) => this._valueChanged('unit_custom', e.target.value)}
-                        />
+                        <label class="option-label">Unit source</label>
+                        <select
+                          class="select"
+                          .value=${c.unit_source ?? 'automatic'}
+                          @change=${(e) => this._valueChanged('unit_source', e.target.value)}
+                        >
+                          <option value="automatic">Automatic</option>
+                          <option value="custom">Custom</option>
+                        </select>
                       </div>
+                      ${(c.unit_source ?? 'automatic') === 'custom'
+                        ? html`
+                            <div class="option-row">
+                              <label class="option-label">Custom unit</label>
+                              <input
+                                type="text"
+                                class="input"
+                                .value=${c.unit_custom ?? ''}
+                                placeholder="e.g. kWh, %"
+                                @input=${(e) => this._valueChanged('unit_custom', e.target.value)}
+                              />
+                            </div>
+                          `
+                        : nothing}
                     `
                   : nothing}
               `
