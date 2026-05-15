@@ -1324,9 +1324,9 @@ customElements.define('stacked-bar-card-editor', StackedHorizontalBarCardEditor)
 const STACKED_BAR_CARD_PICKER = {
   type: 'stacked-bar-card',
   name: 'Stacked Bar Card',
-  preview: false,
+  preview: true,
   description:
-    'Stacked horizontal or vertical bar from entity values with colors, legend, and on-bar labels.',
+    'Stacked horizontal or vertical bar that displays entity values in a grid-friendly graph.',
   documentationURL: 'https://github.com/kattcrazy/Stacked-Bar-Card',
 };
 
