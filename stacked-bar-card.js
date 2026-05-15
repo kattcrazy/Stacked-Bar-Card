@@ -81,7 +81,6 @@ class StackedHorizontalBarCard extends LitElement {
 
   static getStubConfig() {
     return {
-      type: 'custom:stacked-bar-card',
       entities: [],
       sort: 'highest',
       show_title: true,
@@ -559,6 +558,7 @@ customElements.define('stacked-bar-card', StackedHorizontalBarCard);
 class StackedHorizontalBarCardEditor extends LitElement {
   static properties = {
     hass: { type: Object, attribute: false },
+    lovelace: { type: Object, attribute: false },
     _config: { type: Object, state: true },
     _expandedEntities: { type: Object, state: true },
   };
@@ -566,8 +566,18 @@ class StackedHorizontalBarCardEditor extends LitElement {
   constructor() {
     super();
     this.hass = null;
+    this.lovelace = null;
     this._config = {};
     this._expandedEntities = {};
+  }
+
+  configChanged(newConfig) {
+    const event = new Event('config-changed', {
+      bubbles: true,
+      composed: true,
+    });
+    event.detail = { config: newConfig };
+    this.dispatchEvent(event);
   }
 
   _toggleEntityExpand(i) {
@@ -583,12 +593,6 @@ class StackedHorizontalBarCardEditor extends LitElement {
     }
   }
 
-  _fire(type, detail) {
-    const event = new Event(type, { bubbles: true, cancelable: false, composed: true });
-    event.detail = detail;
-    this.dispatchEvent(event);
-  }
-
   _valueChanged(field, value) {
     const cfg = { ...this._config };
     if (value === '' || value === null || value === undefined) {
@@ -597,7 +601,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
       cfg[field] = value;
     }
     this._config = cfg;
-    this._fire('config-changed', { config: cfg });
+    this.configChanged(cfg);
   }
 
   _entityChanged(index, field, value) {
@@ -1308,3 +1312,19 @@ class StackedHorizontalBarCardEditor extends LitElement {
 }
 
 customElements.define('stacked-bar-card-editor', StackedHorizontalBarCardEditor);
+
+const STACKED_BAR_CARD_TYPE = 'custom:stacked-bar-card';
+const STACKED_BAR_CARD_PICKER = {
+  type: STACKED_BAR_CARD_TYPE,
+  name: 'Stacked Bar Card',
+  preview: false,
+  description:
+    'Stacked horizontal or vertical bar from entity values with colors, legend, and on-bar labels.',
+  documentationURL: 'https://github.com/kattcrazy/Stacked-Bar-Card',
+};
+
+if (window.customCards && Array.isArray(window.customCards)) {
+  window.customCards.push(STACKED_BAR_CARD_PICKER);
+} else if (window.registerCustomCard) {
+  window.registerCustomCard(STACKED_BAR_CARD_PICKER);
+}
