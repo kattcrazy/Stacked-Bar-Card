@@ -24,6 +24,15 @@ function isHardcodedNumber(v) {
   return s !== '' && !isNaN(Number(s));
 }
 
+/** Safe fragment for `color:` / CSS custom property value (blocks obvious injection). */
+function sanitizeBarTextColor(raw) {
+  if (raw == null) return '';
+  const s = String(raw).trim();
+  if (!s) return '';
+  if (/[;{}<]/.test(s) || /\burl\s*\(/i.test(s)) return '';
+  return s;
+}
+
 function getAtPath(obj, path) {
   const parts = path.split('.');
   let cur = obj;
@@ -271,6 +280,9 @@ class StackedHorizontalBarCard extends LitElement {
     const renderLegendStrip = showInLegend || showNameInLegend || showUnitInLegend;
     const alignment = this._resolve('alignment') ?? this._resolve('title_alignment') ?? this._resolve('legend_alignment') ?? 'left';
 
+    const barTextColorResolved = sanitizeBarTextColor(this._resolve('bar_text_color'));
+    const barTextColorCss = barTextColorResolved ? `--stacked-bar-bar-text:${barTextColorResolved}` : '';
+
     if (segments.length === 0 || total <= 0) {
       const noBg = fillCard;
       return html`
@@ -312,7 +324,7 @@ class StackedHorizontalBarCard extends LitElement {
             </div>`
           : nothing;
       return html`
-        <div class="segment" style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}" title="${tip}">
+        <div class="segment" style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}${barTextColorCss ? `;${barTextColorCss}` : ''}" title="${tip}">
           ${barLabel}
         </div>
       `;
@@ -496,7 +508,7 @@ class StackedHorizontalBarCard extends LitElement {
     .segment-name {
       font-size: calc(var(--ha-font-size-s, 12px) - 1px);
       font-weight: 500;
-      color: rgba(0, 0, 0, 0.65);
+      color: var(--stacked-bar-bar-text, rgba(0, 0, 0, 0.65));
       text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
       white-space: nowrap;
       overflow: hidden;
@@ -508,7 +520,7 @@ class StackedHorizontalBarCard extends LitElement {
     .segment-value {
       font-size: var(--ha-font-size-m);
       font-weight: var(--ha-font-weight-body);
-      color: rgba(0, 0, 0, 0.7);
+      color: var(--stacked-bar-bar-text, rgba(0, 0, 0, 0.7));
       text-shadow: 0 0 2px rgba(255, 255, 255, 0.8);
       white-space: nowrap;
       overflow: hidden;
@@ -628,6 +640,15 @@ class StackedHorizontalBarCardEditor extends LitElement {
     const showTitle = c.show_title !== false;
     const showLegend = c.show_legend !== false;
 
+    const barTextColorStr = (c.bar_text_color ?? '').trim();
+    let barTextSwatchBg = '';
+    if (/^#[0-9A-Fa-f]{6}$/i.test(barTextColorStr)) barTextSwatchBg = barTextColorStr;
+    else if (/^#[0-9A-Fa-f]{3}$/i.test(barTextColorStr)) {
+      const h = barTextColorStr.slice(1);
+      barTextSwatchBg = `#${h[0]}${h[0]}${h[1]}${h[1]}${h[2]}${h[2]}`;
+    }
+    const barTextHex6 = /^#[0-9A-Fa-f]{6}$/i.test(barTextColorStr) ? `#${barTextColorStr.slice(1).toLowerCase()}` : null;
+
     return html`
       <div class="editor">
         ${!fillCard ? html`
@@ -707,6 +728,34 @@ class StackedHorizontalBarCardEditor extends LitElement {
               `
             : nothing}
           <div class="option-row section-subheader">Options</div>
+          <div class="option-row">
+            <label class="option-label">Bar label color</label>
+            <div class="option-help">Name, value, and unit on bar segments only; legend keeps theme colors.</div>
+            <div class="bar-label-color-wrap">
+              <span
+                class="color-swatch ${barTextSwatchBg ? '' : 'color-swatch-empty'}"
+                style="${barTextSwatchBg ? `background:${barTextSwatchBg}` : ''}"
+              ></span>
+              ${barTextHex6
+                ? html`<input
+                    type="color"
+                    class="bar-text-color-native"
+                    .value=${barTextHex6}
+                    @input=${(e) => this._valueChanged('bar_text_color', e.target.value)}
+                  />`
+                : nothing}
+              <input
+                type="text"
+                class="input bar-text-color-text"
+                .value=${c.bar_text_color ?? ''}
+                placeholder="#333333 or var(--primary-text-color)"
+                @input=${(e) => {
+                  const v = e.target.value.trim();
+                  this._valueChanged('bar_text_color', v === '' ? undefined : v);
+                }}
+              />
+            </div>
+          </div>
           <div class="option-row">
             <label class="option-label">Show name</label>
             <select
@@ -1157,6 +1206,36 @@ class StackedHorizontalBarCardEditor extends LitElement {
       border-radius: 6px;
       flex-shrink: 0;
       border: 1px solid var(--divider-color, rgba(255,255,255,0.2));
+    }
+    .color-swatch-empty {
+      background: var(--disabled-color, rgba(127, 127, 127, 0.35));
+    }
+    .bar-label-color-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .bar-label-color-wrap .color-swatch {
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+    }
+    .bar-text-color-native {
+      width: 48px;
+      height: 40px;
+      padding: 2px;
+      border: 1px solid var(--divider-color, rgba(255, 255, 255, 0.12));
+      border-radius: 10px;
+      cursor: pointer;
+      flex-shrink: 0;
+      box-sizing: border-box;
+      background: var(--card-background-color, transparent);
+    }
+    .bar-text-color-text {
+      flex: 1;
+      min-width: 0;
+      width: auto;
     }
     .entity-options-row .color-input {
       min-width: 80px;

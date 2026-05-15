@@ -41,7 +41,8 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
 | `show_name` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity names |
-| `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units. Ignored when `show_state` is `none`. |
+| `bar_text_color` | string | — | Color for name, value, and unit on bar segments only (e.g. `#fff`, `rgb()`, `var(--primary-text-color)`). Does not change legend labels. |
+| `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units, ignored when `show_state` is `none`. |
 | `unit_source` | `automatic`, `custom` | `automatic` | `automatic`: each segment uses that entity’s `unit_of_measurement`. `custom`: use `unit_custom` for every segment. |
 | `unit_custom` | string | — | Unit text when `unit_source` is `custom` (e.g. `kWh`, `%`). |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
@@ -81,6 +82,7 @@ legend_position: top/bottom
 
 show_state: legend/bar/both/none
 show_name: legend/bar/both/none
+bar_text_color: '#e0e0e0'   # optional; on-bar name, value, and unit only
 
 show_unit: legend/bar/both/none   # omitted or none when show_state is none
 unit_source: automatic/custom
