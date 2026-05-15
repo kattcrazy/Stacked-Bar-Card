@@ -1,8 +1,6 @@
-// Stacked Bar Card - A stacked bar (horizontal or vertical) for Home Assistant
-// Repository: https://github.com/kattcrazy/Stacked-Bar-Card
-// Add type="module" to your resource:
-//   - url: /local/stacked-bar-card.js
-//     type: module
+/** Stacked Bar Card — Lovelace custom card (stacked horizontal/vertical bar by entity value). */
+// Resource: url /local/stacked-bar-card.js, type module.
+// https://github.com/kattcrazy/Stacked-Bar-Card
 //
 import { html, css, LitElement, nothing } from 'https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js';
 
@@ -82,12 +80,12 @@ class StackedHorizontalBarCard extends LitElement {
   static getStubConfig() {
     return {
       entities: [],
-      sort: 'highest',
-      show_title: true,
       show_legend: true,
-      show_state: 'legend',
       show_name: 'legend',
+      show_state: 'legend',
+      show_title: true,
       show_unit: 'none',
+      sort: 'highest',
       unit_source: 'automatic',
     };
   }
@@ -572,12 +570,13 @@ class StackedHorizontalBarCardEditor extends LitElement {
   }
 
   configChanged(newConfig) {
-    const event = new Event('config-changed', {
-      bubbles: true,
-      composed: true,
-    });
-    event.detail = { config: newConfig };
-    this.dispatchEvent(event);
+    this.dispatchEvent(
+      new CustomEvent('config-changed', {
+        bubbles: true,
+        composed: true,
+        detail: { config: newConfig },
+      })
+    );
   }
 
   _toggleEntityExpand(i) {

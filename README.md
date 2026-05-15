@@ -4,6 +4,8 @@ A stacked bar card (horizontal or vertical) where each segment represents an ent
 
 Possible use-cases include storage usage, progress and timer bars, cpu usage, or just a pie chart that fits better into a grid themed dashboard.
 
+All of my (@kattcrazy)'s cards are styled similarly and support Jinja in most, if not all option fields.
+
 ![Header](images/Headerv2.png)
 
 ## Installation
@@ -41,7 +43,7 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `legend_position` | `top`, `bottom` | `bottom` | Legend placement |
 | `show_state` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity values |
 | `show_name` | `bar`, `legend`, `both`, `none` | `legend` | Where to show entity names |
-| `bar_text_color` | string | — | Color for name, value, and unit on bar segments only (e.g. `#fff`, `rgb()`, `var(--primary-text-color)`). Does not change legend labels. |
+| `bar_text_color` | string | — | Color for name, value, and unit on bar segments only. Does not change legend labels. |
 | `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units, ignored when `show_state` is `none`. |
 | `unit_source` | `automatic`, `custom` | `automatic` | `automatic`: each segment uses that entity’s `unit_of_measurement`. `custom`: use `unit_custom` for every segment. |
 | `unit_custom` | string | — | Unit text when `unit_source` is `custom` (e.g. `kWh`, `%`). |
