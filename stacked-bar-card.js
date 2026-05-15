@@ -1326,7 +1326,7 @@ const STACKED_BAR_CARD_PICKER = {
   name: 'Stacked Bar Card',
   preview: true,
   description:
-    'Stacked horizontal or vertical bar that displays entity values in a grid-friendly graph.',
+    'A horizontal or vertical bar that displays the values of your sensors in colour blocks.',
   documentationURL: 'https://github.com/kattcrazy/Stacked-Bar-Card',
 };
 
