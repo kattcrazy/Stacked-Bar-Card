@@ -77,9 +77,16 @@ class StackedHorizontalBarCard extends LitElement {
     return document.createElement('stacked-bar-card-editor');
   }
 
-  static getStubConfig() {
+  static getStubConfig(hass, entities, entitiesFallback) {
+    const pool = [...(entities || []), ...(entitiesFallback || [])];
+    const pick = pool.find((eid) => {
+      const st = hass?.states?.[eid];
+      if (!st) return false;
+      const n = parseFloat(String(st.state));
+      return !Number.isNaN(n);
+    });
     return {
-      entities: [],
+      entities: pick ? [{ entity: pick }] : [],
       show_legend: true,
       show_name: 'legend',
       show_state: 'legend',
@@ -590,6 +597,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
     if (!Array.isArray(this._config.entities)) {
       this._config.entities = [];
     }
+    this.requestUpdate();
   }
 
   _valueChanged(field, value) {
@@ -1312,9 +1320,9 @@ class StackedHorizontalBarCardEditor extends LitElement {
 
 customElements.define('stacked-bar-card-editor', StackedHorizontalBarCardEditor);
 
-const STACKED_BAR_CARD_TYPE = 'custom:stacked-bar-card';
+/** Lovelace YAML type is `custom:stacked-bar-card`; picker registry omits the `custom:` prefix. */
 const STACKED_BAR_CARD_PICKER = {
-  type: STACKED_BAR_CARD_TYPE,
+  type: 'stacked-bar-card',
   name: 'Stacked Bar Card',
   preview: false,
   description:
@@ -1322,8 +1330,7 @@ const STACKED_BAR_CARD_PICKER = {
   documentationURL: 'https://github.com/kattcrazy/Stacked-Bar-Card',
 };
 
-if (window.customCards && Array.isArray(window.customCards)) {
+window.customCards = window.customCards || [];
+if (!window.customCards.some((c) => c.type === STACKED_BAR_CARD_PICKER.type)) {
   window.customCards.push(STACKED_BAR_CARD_PICKER);
-} else if (window.registerCustomCard) {
-  window.registerCustomCard(STACKED_BAR_CARD_PICKER);
 }
