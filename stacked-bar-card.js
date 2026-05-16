@@ -968,7 +968,7 @@ class StackedHorizontalBarCardEditor extends LitElement {
                   </div>
                 </div>
                 <button class="remove-btn" @click=${() => this._removeEntity(i)} title="Remove">
-                  <ha-icon icon="mdi:delete"></ha-icon>
+                  <ha-icon icon="mdi:trash-can-outline"></ha-icon>
                 </button>
               </div>
             `;
