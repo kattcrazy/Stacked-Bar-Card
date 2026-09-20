@@ -33,9 +33,17 @@ const STACKED_BAR_CARD_DEFAULT_CONFIG = {
   show_state: 'legend',
   show_title: true,
   show_unit: 'none',
+  allow_tap_action: 'none',
   sort: 'highest',
   unit_source: 'automatic',
 };
+
+function isRealEntityId(id) {
+  if (id == null) return false;
+  const s = String(id).trim();
+  if (!s || isTemplate(s) || isHardcodedNumber(s)) return false;
+  return s.includes('.');
+}
 
 function isTemplate(v) {
   return typeof v === 'string' && v.includes('{{') && v.includes('}}');
@@ -275,12 +283,17 @@ class StackedHorizontalBarCard extends LitElement {
       const resolvedName = name != null && name !== '' ? name : (fallbackName || 'Segment');
       const color = this._resolve(`entities.${ent._cfgIdx}.color`) || DEFAULT_COLORS[i % DEFAULT_COLORS.length];
       const order = this._resolve(`entities.${ent._cfgIdx}.order`);
+      const tapEntityRaw = ent.tap_entity;
+      const tapEntity = tapEntityRaw != null && String(tapEntityRaw).trim() !== ''
+        ? String(tapEntityRaw).trim()
+        : '';
       return {
         entity: rawEntity || '',
         name: resolvedName,
         value,
         color,
         order: order != null ? order : ent._cfgIdx,
+        tap_entity: tapEntity,
       };
     });
 
@@ -310,6 +323,33 @@ class StackedHorizontalBarCard extends LitElement {
     return u != null && String(u).trim() !== '' ? String(u).trim() : '';
   }
 
+  _resolveTapEntity(seg) {
+    if (seg?.tap_entity) return seg.tap_entity;
+    if (isRealEntityId(seg?.entity)) return String(seg.entity).trim();
+    return null;
+  }
+
+  _openMoreInfo(entityId) {
+    if (!entityId) return;
+    const ev = new CustomEvent('hass-more-info', {
+      bubbles: true,
+      composed: true,
+      detail: { entityId },
+    });
+    this.dispatchEvent(ev);
+  }
+
+  _onTapTarget(ev, entityId) {
+    ev?.stopPropagation?.();
+    this._openMoreInfo(entityId);
+  }
+
+  _onTapKeydown(ev, entityId) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    ev.preventDefault();
+    this._openMoreInfo(entityId);
+  }
+
   _getCardContent() {
     const cfg = this._config;
     const segments = this._getSortedSegments();
@@ -333,6 +373,11 @@ class StackedHorizontalBarCard extends LitElement {
       if (showName === 'legend') showName = 'none';
       else if (showName === 'both') showName = 'bar';
     }
+    let allowTap = this._resolve('allow_tap_action') || 'none';
+    if (fillCard) {
+      if (allowTap === 'legend') allowTap = 'bar';
+      else if (allowTap === 'both') allowTap = 'bar';
+    }
     const showLegend = this._resolve('show_legend') !== false;
     const legendSegments = segments;
     const showInLegend = (showState === 'legend' || showState === 'both') && showLegend;
@@ -343,6 +388,8 @@ class StackedHorizontalBarCard extends LitElement {
     const showUnitOnBar = showUnit === 'bar' || showUnit === 'both' || (showUnit === 'legend' && !showLegend);
     /** Omit legend row entirely when nothing is configured to appear there (avoids empty swatches). */
     const renderLegendStrip = showInLegend || showNameInLegend || showUnitInLegend;
+    const tapOnLegend = (allowTap === 'legend' || allowTap === 'both') && renderLegendStrip;
+    const tapOnBar = allowTap === 'bar' || allowTap === 'both' || (allowTap === 'legend' && !renderLegendStrip);
     const alignment = this._resolve('alignment') ?? this._resolve('title_alignment') ?? this._resolve('legend_alignment') ?? 'left';
 
     const barTextColorResolved = sanitizeBarTextColor(this._resolve('bar_text_color'));
@@ -386,8 +433,18 @@ class StackedHorizontalBarCard extends LitElement {
               : nothing}
           </div>`
         : nothing;
+      const tapEntityId = this._resolveTapEntity(seg);
+      const barInteractive = tapOnBar && !!tapEntityId;
       return html`
-        <div class="segment" style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}${barTextColorCss ? `;${barTextColorCss}` : ''}" title="${tip}">
+        <div
+          class="segment${barInteractive ? ' interactive' : ''}"
+          style="${sizeProp}:${pct}%;background:${bg};border-radius:${radius}${barTextColorCss ? `;${barTextColorCss}` : ''}"
+          title="${tip}"
+          role=${barInteractive ? 'button' : nothing}
+          tabindex=${barInteractive ? '0' : nothing}
+          @click=${barInteractive ? (e) => this._onTapTarget(e, tapEntityId) : nothing}
+          @keydown=${barInteractive ? (e) => this._onTapKeydown(e, tapEntityId) : nothing}
+        >
           ${barLabel}
         </div>
       `;
@@ -412,8 +469,16 @@ class StackedHorizontalBarCard extends LitElement {
                   else legendText = String(seg.value);
                 }
                 if (showUnitInLegend && unitStrL) legendText += legendText ? ` ${unitStrL}` : unitStrL;
+                const tapEntityId = this._resolveTapEntity(seg);
+                const legendInteractive = tapOnLegend && !!tapEntityId;
                 return html`
-                <div class="legend-item">
+                <div
+                  class="legend-item${legendInteractive ? ' interactive' : ''}"
+                  role=${legendInteractive ? 'button' : nothing}
+                  tabindex=${legendInteractive ? '0' : nothing}
+                  @click=${legendInteractive ? (e) => this._onTapTarget(e, tapEntityId) : nothing}
+                  @keydown=${legendInteractive ? (e) => this._onTapKeydown(e, tapEntityId) : nothing}
+                >
                   <span class="legend-swatch" style="background:${swatchBg};border-radius:${barRadiusPx}"></span>
                   <span class="legend-label">${legendText}</span>
                 </div>
@@ -558,6 +623,10 @@ class StackedHorizontalBarCard extends LitElement {
       min-width: 0;
       min-height: 0;
       transition: width 0.3s ease, height 0.3s ease;
+    }
+    .segment.interactive,
+    .legend-item.interactive {
+      cursor: pointer;
     }
     .segment-inner {
       display: flex;
@@ -794,6 +863,22 @@ class StackedHorizontalBarCardEditor extends LitElement {
                 </div>
               `
             : nothing}
+          <div class="option-row">
+            <label class="option-label">Allow tap action</label>
+            <select
+              class="select"
+              .value=${c.allow_tap_action ?? 'none'}
+              @change=${(e) => this._valueChanged('allow_tap_action', e.target.value)}
+            >
+              <option value="bar">On bar</option>
+              <option value="legend">In legend</option>
+              <option value="both">Both</option>
+              <option value="none">Neither</option>
+            </select>
+          </div>
+          <div class="option-help">
+            Tap opens more-info. For template or number segments, set Tap entity on the entity row.
+          </div>
           <div class="option-row section-subheader">Options</div>
           <div class="option-row">
             <label class="option-label">Bar label color</label>
@@ -953,6 +1038,10 @@ class StackedHorizontalBarCardEditor extends LitElement {
               const textareaRows = Math.max(6, entityLines + 1);
               const colorVal = ent.color ?? '';
               const showColorSwatch = colorVal && /^#[0-9A-Fa-f]{3,8}$/.test(colorVal.trim());
+              const allowTap = c.allow_tap_action ?? 'none';
+              const showTapEntityField = allowTap !== 'none'
+                && (!isRealEntityId(ent.entity)
+                  || (ent.tap_entity != null && String(ent.tap_entity).trim() !== ''));
               return html`
               <div class="entity-row">
                 <div class="entity-fields">
@@ -1019,6 +1108,22 @@ class StackedHorizontalBarCardEditor extends LitElement {
                             min="0"
                             @input=${(e) => this._entityChanged(i, 'order', parseInt(e.target.value))}
                           />
+                        `
+                      : nothing}
+                    ${showTapEntityField
+                      ? html`
+                          <input
+                            type="text"
+                            class="input tap-entity-input ${(c.sort || 'highest') === 'custom' ? 'tap-entity-remaining' : 'tap-entity-full'}"
+                            .value=${ent.tap_entity ?? ''}
+                            list="tap-entity-list-${i}"
+                            placeholder="Tap entity"
+                            title="Entity opened on tap. Leave blank to use the segment entity when it is a normal entity ID."
+                            @input=${(e) => this._entityChanged(i, 'tap_entity', e.target.value || undefined)}
+                          />
+                          <datalist id="tap-entity-list-${i}">
+                            ${entityOptions.map((eid) => html`<option value="${eid}">`)}
+                          </datalist>
                         `
                       : nothing}
                   </div>
@@ -1311,6 +1416,20 @@ class StackedHorizontalBarCardEditor extends LitElement {
     .entity-options-row .order-input {
       width: 60px;
       min-width: 60px;
+    }
+    .entity-options-row .tap-entity-input.tap-entity-full {
+      flex: 1 1 100%;
+      width: 100%;
+      min-width: 100%;
+      max-width: none;
+      box-sizing: border-box;
+    }
+    .entity-options-row .tap-entity-input.tap-entity-remaining {
+      flex: 1;
+      min-width: 100px;
+      width: auto;
+      max-width: none;
+      box-sizing: border-box;
     }
     .expand-btn {
       padding: 8px;

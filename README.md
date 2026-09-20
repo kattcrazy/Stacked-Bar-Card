@@ -47,6 +47,7 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `show_unit` | `bar`, `legend`, `both`, `none` | `none` | Where to show units, ignored when `show_state` is `none`. |
 | `unit_source` | `automatic`, `custom` | `automatic` | `automatic`: each segment uses that entity’s `unit_of_measurement`. `custom`: use `unit_custom` for every segment. |
 | `unit_custom` | string | — | Unit text when `unit_source` is `custom` (e.g. `kWh`, `%`). |
+| `allow_tap_action` | `bar`, `legend`, `both`, `none` | `none` | Where tapping a segment or legend row opens more-info |
 | `sort` | `abc`, `cba`, `highest`, `lowest`, `custom` | `highest` | Segment order (left → right) |
 | `layout` | `horizontal`, `vertical` | `horizontal` | Bar direction; vertical stacks bottom to top |
 | `bar_radius` | number | theme | Bar segment border-radius (px); omit for theme default |
@@ -62,8 +63,11 @@ All options support Jinja templates (strings containing `{{ }}`).
 | `name` | string | — | Override name; omit to use friendly name. Supports Jinja. |
 | `color` | string | auto | Hex (e.g. `#FF0000`) or HA variable. Supports Jinja. |
 | `order` | number | — | Used when `sort: custom`. Supports Jinja. |
+| `tap_entity` | string | — | Entity ID to open on tap. Needed when `entity` is a template or number; optional override for a normal entity ID. |
 
 Entities must have numeric values (from entity state or from a Jinja template in `entity`). Proportions are computed from the sum.
+
+Tap opens more-info only (history graph). Set `allow_tap_action` to `bar`, `legend`, or `both`. If the legend is hidden and `allow_tap_action` is `legend`, taps fall back to the bar.
 
 
 ### Full config & options
@@ -90,6 +94,8 @@ show_unit: legend/bar/both/none   # omitted or none when show_state is none
 unit_source: automatic/custom
 unit_custom: '%'                 # only when unit_source is custom
 
+allow_tap_action: none/bar/legend/both
+
 sort: abc/cba/highest/lowest/custom
 layout: horizontal/vertical
 
@@ -102,6 +108,7 @@ entities:
     name: Grid
     color: '#4472C4'
     order: 1 # If using sort: custom
+    tap_entity: sensor.grid_usage  # only needed for templates/numbers; optional override
 ```
 
 
@@ -180,12 +187,15 @@ type: custom:stacked-bar-card
 entities:
   - entity: "{{ states('sensor.percent_finished') | float }}" # Your entity here
     name: Completed
-    color: '#7DD3FC'  
+    color: '#7DD3FC'
     order: 1
+    tap_entity: sensor.percent_finished
   - entity: "{{ 100 - states('sensor.percent_finished') | float }}" # Your entity here
     name: Remaining
     color: '#E0E0E0' # Paler version of chosen colour here
     order: 2
+    tap_entity: sensor.percent_finished
+allow_tap_action: bar
 show_legend: false
 show_state: none
 sort: custom
