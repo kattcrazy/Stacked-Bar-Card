@@ -12,15 +12,11 @@ A stacked bar card (horizontal or vertical) where each segment represents an ent
 
 Possible use-cases include storage usage, progress and timer bars, cpu usage, or just a pie chart that fits better into a grid themed dashboard.
 
-All of my (@kattcrazy)'s cards are styled similarly and support Jinja in most, if not all option fields.
-
 ![Header](images/Headerv2.png)
 
 ## Installation
 
 ### HACS (recommended) 
-
-Now in HACS 🎉
 
 <a href="https://my.home-assistant.io/redirect/hacs_repository/?owner=kattcrazy&category=plugin&repository=stacked-bar-card" target="_blank" rel="noreferrer noopener"><img src="https://my.home-assistant.io/badges/hacs_repository.svg" alt="Open your Home Assistant instance and open a repository inside the Home Assistant Community Store." /></a>
 
