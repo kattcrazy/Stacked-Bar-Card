@@ -1,7 +1,9 @@
 <!-- project-directory-status -->
-<p align="center">
+<div align="center">
+
 [![Maintained](https://img.shields.io/endpoint?style=for-the-badge&url=https%3A%2F%2Fraw.githubusercontent.com%2Fkattcrazy%2Fkattcrazy%2Fmain%2Fbadges%2FStacked-Bar-Card.json)](https://github.com/kattcrazy/kattcrazy/blob/main/PROJECT-DIRECTORY.md) [![Looking for co-maintainer](https://img.shields.io/endpoint?style=for-the-badge&url=https%3A%2F%2Fraw.githubusercontent.com%2Fkattcrazy%2Fkattcrazy%2Fmain%2Fbadges%2FStacked-Bar-Card-section.json)](https://github.com/kattcrazy/kattcrazy/blob/main/PROJECT-DIRECTORY.md)
-</p>
+
+</div>
 <!-- /project-directory-status -->
 
 # Stacked Bar Card
